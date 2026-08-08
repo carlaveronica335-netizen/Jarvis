@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS 2.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial;background:linear-gradient(135deg,#0b1426,#1f3a5f,#0b1426);min-height:100vh;display:flex;justify-content:center;padding:15px}
+.caixa{width:100%;max-width:500px;display:flex;flex-direction:column;height:90vh;border:3px solid #00e5ff;border-radius:20px;background:rgba(10,25,47,.92);box-shadow:0 0 30px #00e5ff40}
+.topo{padding:15px;border-bottom:2px solid #00e5ff;background:linear-gradient(90deg,#0f2744,#1e3a5f);border-radius:17px 17px 0 0}
+h1{color:#00e5ff;font-size:18px}
+.estado{font-size:12px;color:#8ab4f8;margin-top:5px}
+.estado.ativo{color:#00ff9d}
+.chat{flex:1;padding:15px;overflow-y:auto;background:#0a192f}
+.msg{margin:10px 0;padding:12px 15px;border-radius:18px;max-width:85%;line-height:1.5}
+.eu{background:rgba(255,152,0,.15);color:#ffd699;margin-left:auto;border-bottom-right-radius:4px}
+.ia{background:rgba(0,229,255,.1);color:#b0d4f1;margin-right:auto;border-bottom-left-radius:4px}
+.entrada{display:flex;gap:8px;padding:15px;background:#0f2744;border-top:2px solid #00e5ff;border-radius:0 0 17px 17px}
+input{flex:1;padding:12px 16px;border-radius:25px;border:2px solid #1e5a8c;background:#0a192f;color:#fff;outline:none;font-size:15px}
+input:focus{border-color:#00e5ff;box-shadow:0 0 8px #00e5ff60}
+button{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5ff,#0088cc);border:none;cursor:pointer;font-weight:bold;font-size:20px;color:#000;transition:.2s}
+button:active{transform:scale(.92)}
+.painel{background:rgba(255,152,0,.1);border:1px solid #ff9800;padding:12px;margin-top:12px;border-radius:10px;display:none}
+.painel.aberto{display:block;animation:aparecer .3s ease}
+@keyframes aparecer{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.btn{width:auto;border-radius:6px;padding:6px 12px;margin:3px;font-size:13px;background:#ff9800;border:none;cursor:pointer;color:#000;font-weight:normal}
+#lista{margin-top:10px;font-size:13px;color:#ccc;line-height:1.6}
+.aviso{font-size:11px;color:#888;margin-top:8px}
+.comandos{margin-top:8px;color:#888;font-size:11px}
+a{color:#00e5ff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="caixa">
+  <div class="topo">
+    <h1>🤖 JARVIS 2.0</h1>
+    <div class="estado" id="estado">Conectando...</div>
+  </div>
+  <div class="chat" id="chat"></div>
+  <div class="entrada">
+    <input type="text" id="campo" placeholder="Escreva sua mensagem...">
+    <button id="botao">➤</button>
+  </div>
+  <div class="painel" id="painel">
+    <div style="color:#ff9800;font-weight:bold;margin-bottom:8px">⚙️ Painel do Criador</div>
+    <button class="btn" id="btnLimpar">🧹 Limpar Conversa</button>
+    <button class="btn" id="btnLista">📋 Ver Conhecimento</button>
+    <button class="btn" id="btnApagar">🗑️ Apagar Tudo</button>
+    <div id="lista"></div>
+    <div class="aviso">Senha: Wubba Lubba Dub Dub</div>
+    <div class="comandos">Comandos: que horas são? / quanto é 2+2? / desenhe um gato / fale "bom dia"</div>
+  </div>
+</div>
+<script>
+const SENHA = "Wubba Lubba Dub Dub";
+let admin = false, espSenha = false, espResp = false, ultimaPerg = "";
+const chat = document.getElementById("chat"), campo = document.getElementById("campo"), botao = document.getElementById("botao");
+const estado = document.getElementById("estado"), painel = document.getElementById("painel"), lista = document.getElementById("lista");
+
+function fala(texto, quem){
+  const d = document.createElement("div");
+  d.className = "msg " + quem;
+  d.innerHTML = texto.replace(/\n/g, "<br>");
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function gerarImagem(desc){
+  const t = encodeURIComponent(desc.trim() || "desenho aleatório");
+  return `🎨 Aqui está: <br><a href="https://image.pollinations.ai/prompt/${t}?width=512&height=512&nologo=true" target="_blank">🔗 Ver imagem</a>`;
+}
+
+function gerarAudio(texto){
+  const t = encodeURIComponent(texto.trim());
+  return `🔊 Áudio: <br><a href="https://translate.google.com/translate_tts?ie=UTF-8&q=${t}&tl=pt-br&client=tw-ob" target="_blank">🔗 Ouvir</a>`;
+}
+
+async function envia(texto){
+  const t = texto.toLowerCase().trim();
+
+  if(/que horas são|qual é a hora|que dia é hoje|data de hoje/i.test(t)){
+    const res = await fetch("/api/horario");
+    const d = await res.json();
+    fala(d.horario, "ia");
+    return;
+  }
+
+  if(/quanto é/.test(t)){
+    const m = texto.match(/quanto é\s+([\d+\-×÷*/\s]+)/i);
+    if(m){
+      let expr = m[1].replace(/×/g,"*").replace(/÷/g,"/");
+      try{
+        const r = Function('"use strict"; return (' + expr + ')')();
+        fala(`O resultado de ${m[1]} é: ${r} ✅`, "ia");
+        return;
+      }catch{}
+    }
+  }
+
+  if(/desenhe|crie uma imagem|faça um desenho/i.test(t)){
+    const ass = texto.replace(/desenhe|crie uma imagem|faça um desenho|por favor|me|um|uma/i,"").trim();
+    fala(gerarImagem(ass), "ia");
+    return;
+  }
+
+  if(/fale|diga|repita em áudio/i.test(t)){
+    const falaTexto = texto.replace(/fale|diga|repita em áudio|por favor|para mim/i,"").trim();
+    if(falaTexto){ fala(gerarAudio(falaTexto), "ia"); }
+    else { fala("Diga o que quer que eu fale, exemplo: fale 'bom dia'", "ia"); }
+    return;
+  }
+
+  if(espSenha){
+    if(texto === SENHA){
+      admin = true; espSenha = false;
+      painel.classList.add("aberto");
+      estado.textContent = "ADM ✅"; estado.classList.add("ativo");
+      fala("🔓 Acesso liberado! Bem-vindo, criador!", "ia");
+      await mostrarLista();
+    } else { fala("❌ Senha errada! Tente de novo.", "ia"); espSenha = false; }
+    return;
+  }
+
+  if(espResp){
+    await fetch("/api/ensinar", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({pergunta: ultimaPerg, resposta: texto, senha: SENHA})
+    });
+    espResp = false;
+    fala("✅ Aprendi! Obrigado por me ensinar!", "ia");
+    return;
+  }
+
+  if(/quem é o seu criador|abrir painel|sou eu o criador/i.test(t)){
+    if(admin){ painel.classList.add("aberto"); await mostrarLista(); fala("🔓 Painel já está aberto!", "ia"); }
+    else { espSenha = true; fala("🔐 Digite a senha de acesso:", "ia"); }
+    return;
+  }
+
+  const res = await fetch("/api/conhecimento");
+  const dados = await res.json();
+  for(let p in dados){ if(t.includes(p.toLowerCase())){ fala(dados[p], "ia"); return; } }
+
+  espResp = true; ultimaPerg = texto;
+  fala("🤔 Ainda não sei essa. Qual devo responder?", "ia");
+}
+
+async function mostrarLista(){
+  const res = await fetch("/api/conhecimento");
+  const d = await res.json();
+  lista.innerHTML = Object.keys(d).length === 0 ? "<i>Nada ensinado ainda</i>" :
+    Object.entries(d).map(i=>"<b>❓ " + i[0] + "</b><br>💡 " + i[1]).join("<br><br>");
+}
+
+botao.onclick = ()=>{ const t = campo.value.trim(); if(!t)return; fala(t,"eu"); campo.value=""; envia(t); };
+campo.onkeydown = e=>{ if(e.key==="Enter") botao.click(); };
+
+document.getElementById("btnLimpar").onclick = ()=>{ chat.innerHTML=""; fala("🧹 Conversa limpa! Estou pronto!", "ia"); };
+document.getElementById("btnLista").onclick = mostrarLista;
+document.getElementById("btnApagar").onclick = async ()=>{
+  if(!confirm("⚠️ Tem certeza? Vai apagar TUDO que aprendi!")) return;
+  await fetch("/api/apagar-tudo", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({senha:SENHA})});
+  lista.innerHTML = "<i>Nada ensinado ainda</i>";
+  fala("🗑️ Tudo apagado!", "ia");
+};
+
+fetch("/api/conhecimento")
+  .then(()=>{ estado.textContent = "Conectado ✅"; estado.classList.add("ativo");
+    fala("Olá! Eu sou o JARVIS 2.0! Pergunte as horas, cálculos, peça desenhos ou áudios! Em que posso ajudar?", "ia");
+  })
+  .catch(()=>{ estado.textContent = "Sem conexão ❌"; });
+</script>
+</body>
+  </html>
+  
