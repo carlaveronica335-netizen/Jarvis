@@ -1,0 +1,11 @@
+{
+  "name": "jarvis-assistente",
+  "version": "2.0.0",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
