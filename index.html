@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,19 +14,19 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         button { 
             cursor: pointer; 
-            touch-action: manipulation; 
+            touch-action: pan-y; 
             border: 2px solid transparent;
-            outline: 3px solid transparent;
-            transition: all 0.15s;
+            outline: none;
+            transition: all 0.1s;
             -webkit-appearance: none;
             appearance: none;
+            min-height: 56px;
+            min-width: 56px;
         }
-        button:focus {
-            outline: 3px solid #00d9ff;
-            outline-offset: 2px;
-            border-color: #00d9ff;
+        button:active { 
+            transform: scale(0.92); 
+            opacity: 0.85;
         }
-        button:active { transform: scale(0.95); }
         :root {
             --fundo-escuro: #0f172a;
             --cor-primaria: #00d9ff;
@@ -124,14 +124,14 @@
         }
         .botao-modo {
             flex: 1;
-            padding: 14px 10px;
+            padding: 16px 10px;
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: bold;
             color: white;
             background: gray;
-            min-height: 50px;
+            min-height: 56px;
         }
         .botao-modo.ensinar { background: var(--cor-botao-ensinar); }
         .botao-modo.ensinar.ativo { box-shadow: 0 0 12px var(--cor-botao-ensinar); }
@@ -151,11 +151,11 @@
             color: white;
             font-size: 16px;
             outline: none;
-            min-height: 50px;
+            min-height: 56px;
         }
         #btnEnviar {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             border: none;
             background: var(--cor-primaria);
@@ -164,30 +164,34 @@
             flex-shrink: 0;
         }
         .painel-adm {
-            background: rgba(20, 80, 40, 0.8);
+            background: rgba(20, 80, 40, 0.95);
             border: 2px solid #00ff88;
             border-radius: 12px;
             padding: 15px;
             margin: 10px 0;
             display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 999;
+            overflow-y: auto;
         }
         .painel-adm.aberto { display: block; }
         .botoes-adm {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             margin: 12px 0;
         }
         .botao-adm {
             flex: 1;
             min-width: 100px;
-            padding: 12px 8px;
+            padding: 14px 8px;
             border: none;
             border-radius: 8px;
             font-size: 13px;
             font-weight: bold;
             color: white;
-            min-height: 48px;
+            min-height: 52px;
         }
         .botao-apagar { background: var(--cor-perigo); }
         .botao-limpar { background: var(--cor-aviso); color: #000; }
@@ -196,7 +200,7 @@
         .botao-fechar {
             background: #444;
             width: 100%;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         .info-aprendizado, .lista-solicitacoes {
             background: rgba(0, 0, 0, 0.3);
@@ -208,22 +212,16 @@
             font-size: 13px;
         }
         .solicitacao-item {
-            padding: 8px;
+            padding: 10px 8px;
             border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
         }
-        .comandos-dica {
-            font-size: 12px;
-            color: #88aacc;
-            margin-top: 8px;
-            line-height: 1.6;
-        }
-        .botao-aprovar { background: #00cc66; border: none; padding: 6px 12px; border-radius: 4px; color: white; font-size: 13px; min-height: 36px; }
-        .botao-negar { background: #ff3333; border: none; padding: 6px 12px; border-radius: 4px; color: white; font-size: 13px; min-height: 36px; }
+        .botao-aprovar { background: #00cc66; border: none; padding: 10px 14px; border-radius: 6px; color: white; font-size: 14px; min-height: 44px; }
+        .botao-negar { background: #ff3333; border: none; padding: 10px 14px; border-radius: 6px; color: white; font-size: 14px; min-height: 44px; }
     </style>
 </head>
 <body>
@@ -252,9 +250,6 @@
     <div class="caixa-envio">
         <input type="text" id="entrada" placeholder="Escreva sua mensagem...">
         <button id="btnEnviar">➤</button>
-    </div>
-    <div class="comandos-dica">
-        Exemplos: "Oi Jarvis" / "Que horas são?" / "Quanto é 2 + 2?"
     </div>
 </div>
 
@@ -321,232 +316,6 @@
         if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
             ultimoAvisoRecebido = aviso.texto;
             mostrarAvisoGlobal(aviso.texto);
-        }
-    });
 
-    refSolicitacoes.on('value', function(snapshot) {
-        const dados = snapshot.val() || {};
-        atualizarListaSolicitacoes(dados);
-    });
 
-    refConfig.child('modoAdulto').on('value', function(snapshot) {
-        modoAdultoLiberado = snapshot.val() === true;
-        atualizarIndicadorModoAdulto();
-    });
-
-    refConfig.child('usuariosLiberados').on('value', function(snapshot) {
-        const liberados = snapshot.val() || {};
-        if (liberados[usuarioId]) {
-            localStorage.setItem('liberadoAdulto', 'sim');
-        }
-    });
-
-    function podeClicar() {
-        const agora = Date.now();
-        if (agora - ultimoClique < INTERVALO_ANTI_DUPLICADO) {
-            return false;
-        }
-        ultimoClique = agora;
-        return true;
-    }
-
-    function atualizarIndicadorModoAdulto() {
-        document.getElementById('indicadorModoAdulto').style.display = modoAdultoLiberado ? 'inline' : 'none';
-    }
-
-    function salvarConhecimento(pergunta, resposta) {
-        refConhecimento.child(pergunta.toLowerCase()).set(resposta);
-    }
-
-    function mostrarAvisoGlobal(texto) {
-        const div = document.createElement('div');
-        div.className = 'mensagem aviso-todos';
-        div.innerHTML = '📢 MENSAGEM DO CRIADOR:<br>' + texto;
-        historico.appendChild(div);
-        historico.scrollTop = historico.scrollHeight;
-    }
-
-    function solicitarLiberacao() {
-        const nomeSolicitante = prompt("Digite seu nome ou apelido para enviar a solicitação:");
-        if (!nomeSolicitante) return;
         
-        refSolicitacoes.child(usuarioId).set({
-            nome: nomeSolicitante,
-            usuarioId: usuarioId,
-            data: new Date().toISOString(),
-            status: 'pendente'
-        });
-        
-        adicionarMensagem('📋 Solicitação enviada! Aguarde o criador confirmar.', 'ia');
-    }
-
-    function atualizarListaSolicitacoes(dados) {
-        const lista = document.getElementById('listaSolicitacoes');
-        const entradas = [];
-        for (let id in dados) {
-            if (dados[id].status === 'pendente') {
-                entradas.push([id, dados[id]]);
-            }
-        }
-        
-        if (entradas.length === 0) {
-            lista.innerHTML = '<em>Nenhuma solicitação pendente...</em>';
-            return;
-        }
-        
-        lista.innerHTML = '';
-        for (let i = 0; i < entradas.length; i++) {
-            const id = entradas[i][0];
-            const d = entradas[i][1];
-            const item = document.createElement('div');
-            item.className = 'solicitacao-item';
-            item.innerHTML = '<div><strong>' + (d.nome || 'Anônimo') + '</strong><br><small>' + new Date(d.data).toLocaleString('pt-BR') + '</small></div><div><button class="botao-aprovar" data-id="' + id + '">✅ Aprovar +18</button> <button class="botao-negar" data-id="' + id + '">❌ Negar</button></div>';
-            lista.appendChild(item);
-        }
-    }
-
-    function aprovarUsuario(id) {
-        if (!podeClicar()) return;
-        refSolicitacoes.child(id).update({ status: 'aprovado' });
-        refConfig.child('usuariosLiberados').child(id).set(true);
-        
-        const aviso = '⚠️ AVISO IMPORTANTE — O que você vai ver pode prejudicar sua mente e seu futuro. A pornografia vicia, destrói relacionamentos, tira seu foco e atrapalha sua vida toda. Use com muita consciência e moderação. Cuide de você! 🧠❤️';
-        refAvisoGlobal.set({
-            texto: aviso,
-            data: new Date().toISOString()
-        });
-        
-        alert('✅ Usuário aprovado! Aviso enviado para todos!');
-    }
-
-    function negarUsuario(id) {
-        if (!podeClicar()) return;
-        refSolicitacoes.child(id).update({ status: 'negado' });
-        alert('❌ Usuário negado!');
-    }
-
-    function alternarModoAdulto() {
-        if (!podeClicar()) return;
-        refConfig.child('modoAdulto').set(!modoAdultoLiberado);
-        adicionarMensagem(modoAdultoLiberado ? '🔞 Modo adulto foi DESATIVADO para todos.' : '🔞 Modo adulto foi LIBERADO para todos os aprovados!', 'ia');
-    }
-
-    function apagarTudoAprendido() {
-        if (!podeClicar()) return;
-        if (confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) {
-            refConhecimento.remove();
-            adicionarMensagem('🗑️ Todo o conhecimento foi apagado do servidor!', 'ia');
-            document.getElementById('listaAprendizado').innerHTML = '<em>Nada ensinado ainda...</em>';
-        }
-    }
-
-    function limparConversa() {
-        if (!podeClicar()) return;
-        historico.innerHTML = '';
-        adicionarMensagem('🧹 Conversa limpa!', 'ia');
-    }
-
-    function mandarMensagemParaTodos() {
-        if (!podeClicar()) return;
-        const mensagem = prompt("Digite a mensagem que todos vão receber:");
-        if (mensagem) {
-            refAvisoGlobal.set({
-                texto: mensagem,
-                data: new Date().toISOString()
-            });
-            adicionarMensagem('📢 Mensagem enviada para todos!<br>"' + mensagem + '"', 'ia');
-        }
-    }
-
-    function adicionarMensagem(texto, remetente, imagemUrl) {
-        const div = document.createElement('div');
-        div.className = 'mensagem ' + remetente;
-        div.innerHTML = texto.replace(/\n/g, '<br>');
-        if (imagemUrl) {
-            div.innerHTML += '<img src="' + imagemUrl + '" class="imagem-resposta" alt="Desenho">';
-        }
-        historico.appendChild(div);
-        historico.scrollTop = historico.scrollHeight;
-    }
-
-    function gerarImagem(descricao) {
-        const prompt = encodeURIComponent(descricao + ', estilo simples, bonito, colorido');
-        const url = 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&seed=' + Math.floor(Math.random() * 99999);
-        adicionarMensagem('🎨 Desenhando: "' + descricao + '"...', 'ia');
-        setTimeout(() => {
-            adicionarMensagem('🎨 Pronto!', 'ia', url);
-        }, 2000);
-    }
-
-    function darResposta(texto) {
-        const t = texto.toLowerCase().trim();
-
-        if (texto.trim() === senhaAdm) {
-            abrirPainelAdm();
-            return "Acesso concedido! Bem-vindo ao painel de administração.";
-        }
-
-        if (t.includes("quem te criou") || t.includes("quem é seu dono")) {
-            return "Fui criada pelo Mateus. Ele é meu criador e dono.";
-        }
-
-        if (t.includes("qual sua cor favorita") || t.includes("cor favorita")) {
-            return "Minha cor favorita é azul, igual a minha interface! 💙";
-        }
-
-        if (t.includes("que horas são") || t.includes("horas são")) {
-            return "Agora são " + new Date().toLocaleTimeString('pt-BR') + " ⏰";
-        }
-
-        if (t.includes("que dia é hoje") || t.includes("dia é hoje")) {
-            return "Hoje é " + new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) + " 📅";
-        }
-
-        const operacao = texto.match(/(\d+)\s*([+\-*\/])\s*(\d+)/);
-        if (operacao) {
-            const a = parseFloat(operacao[1]);
-            const op = operacao[2];
-            const b = parseFloat(operacao[3]);
-            let res;
-            if (op === '+') res = a + b;
-            else if (op === '-') res = a - b;
-            else if (op === '*') res = a * b;
-            else if (op === '/') res = b !== 0 ? a / b : "Não dá pra dividir por zero!";
-            if (typeof res === 'number') res = `${a} ${op} ${b} = ${res} ✅`;
-            return res;
-        }
-
-        if (conhecimento[t]) {
-            return conhecimento[t];
-        }
-
-        const partes = texto.split('=');
-        if (partes.length >= 2) {
-            const pergunta = partes[0].trim();
-            const resposta = partes.slice(1).join('=').trim();
-            salvarConhecimento(pergunta, resposta);
-            return `✅ Aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`;
-        }
-
-        return "Ainda não sei isso! Me ensine assim: pergunta = resposta";
-    }
-
-    function enviarMensagem() {
-        if (!podeClicar()) return;
-        const texto = entrada.value.trim();
-        if (!texto) return;
-
-        adicionarMensagem(texto, 'usuario');
-        entrada.value = '';
-
-        if (texto.toLowerCase() === 'sair') {
-            modoEnsinar = false;
-            modoDesenhar = false;
-            btnEnsinar.classList.remove('ativo');
-            btnDesenhar.classList.remove('ativo');
-            adicionarMensagem("✅ Saí do modo especial!", 'ia');
-            return;
-        }
-
-
-    
