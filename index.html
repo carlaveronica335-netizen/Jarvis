@@ -306,12 +306,14 @@
     let modoAdultoLiberado = false;
     let usuarioId = localStorage.getItem('usuarioId') || ('usuario_' + Math.random().toString(36).substr(2, 9));
     localStorage.setItem('usuarioId', usuarioId);
+    let ultimoClique = 0;
+    const INTERVALO_ANTI_DUPLICADO = 300; // meio segundo entre cliques
 
-    refConhecimento.on('value', (snapshot) => {
+    refConhecimento.on('value', function(snapshot) {
         conhecimento = snapshot.val() || {};
     });
 
-    refAvisoGlobal.on('value', (snapshot) => {
+    refAvisoGlobal.on('value', function(snapshot) {
         const aviso = snapshot.val();
         if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
             ultimoAvisoRecebido = aviso.texto;
@@ -319,22 +321,31 @@
         }
     });
 
-    refSolicitacoes.on('value', (snapshot) => {
+    refSolicitacoes.on('value', function(snapshot) {
         const dados = snapshot.val() || {};
         atualizarListaSolicitacoes(dados);
     });
 
-    refConfig.child('modoAdulto').on('value', (snapshot) => {
+    refConfig.child('modoAdulto').on('value', function(snapshot) {
         modoAdultoLiberado = snapshot.val() === true;
         atualizarIndicadorModoAdulto();
     });
 
-    refConfig.child('usuariosLiberados').on('value', (snapshot) => {
+    refConfig.child('usuariosLiberados').on('value', function(snapshot) {
         const liberados = snapshot.val() || {};
         if (liberados[usuarioId]) {
             localStorage.setItem('liberadoAdulto', 'sim');
         }
     });
+
+    function podeClicar() {
+        const agora = Date.now();
+        if (agora - ultimoClique < INTERVALO_ANTI_DUPLICADO) {
+            return false; // clicou muito rápido = ignora
+        }
+        ultimoClique = agora;
+        return true;
+    }
 
     function atualizarIndicadorModoAdulto() {
         document.getElementById('indicadorModoAdulto').style.display = modoAdultoLiberado ? 'inline' : 'none';
@@ -347,7 +358,7 @@
     function mostrarAvisoGlobal(texto) {
         const div = document.createElement('div');
         div.className = 'mensagem aviso-todos';
-        div.innerHTML = `📢 MENSAGEM DO CRIADOR:<br>${texto}`;
+        div.innerHTML = '📢 MENSAGEM DO CRIADOR:<br>' + texto;
         historico.appendChild(div);
         historico.scrollTop = historico.scrollHeight;
     }
@@ -363,76 +374,83 @@
             status: 'pendente'
         });
         
-        adicionarMensagem(`📋 Solicitação enviada! Aguarde o criador confirmar.`, "ia");
+        adicionarMensagem('📋 Solicitação enviada! Aguarde o criador confirmar.', 'ia');
     }
 
     function atualizarListaSolicitacoes(dados) {
         const lista = document.getElementById('listaSolicitacoes');
-        const entradas = Object.entries(dados).filter(([_, d]) => d.status === 'pendente');
+        const entradas = [];
+        for (let id in dados) {
+            if (dados[id].status === 'pendente') {
+                entradas.push([id, dados[id]]);
+            }
+        }
         
         if (entradas.length === 0) {
-            lista.innerHTML = "<em>Nenhuma solicitação pendente...</em>";
+            lista.innerHTML = '<em>Nenhuma solicitação pendente...</em>';
             return;
         }
         
-        lista.innerHTML = "";
-        entradas.forEach(([id, dados]) => {
+        lista.innerHTML = '';
+        for (let i = 0; i < entradas.length; i++) {
+            const id = entradas[i][0];
+            const d = entradas[i][1];
             const item = document.createElement('div');
             item.className = 'solicitacao-item';
-            item.innerHTML = `
-                <div><strong>${dados.nome || 'Anônimo'}</strong><br><small>${new Date(dados.data).toLocaleString('pt-BR')}</small></div>
-                <div>
-                    <button class="botao-aprovar" data-id="${id}">✅ Aprovar +18</button>
-                    <button class="botao-negar" data-id="${id}">❌ Negar</button>
-                </div>
-            `;
+            item.innerHTML = '<div><strong>' + (d.nome || 'Anônimo') + '</strong><br><small>' + new Date(d.data).toLocaleString('pt-BR') + '</small></div><div><button class="botao-aprovar" data-id="' + id + '">✅ Aprovar +18</button> <button class="botao-negar" data-id="' + id + '">❌ Negar</button></div>';
             lista.appendChild(item);
-        });
+        }
     }
 
     function aprovarUsuario(id) {
+        if (!podeClicar()) return;
         refSolicitacoes.child(id).update({ status: 'aprovado' });
         refConfig.child('usuariosLiberados').child(id).set(true);
         
-        const aviso = `⚠️ AVISO IMPORTANTE — O que você vai ver pode prejudicar sua mente e seu futuro. A pornografia vicia, destrói relacionamentos, tira seu foco e atrapalha sua vida toda. Use com muita consciência e moderação. Cuide de você! 🧠❤️`;
+        const aviso = '⚠️ AVISO IMPORTANTE — O que você vai ver pode prejudicar sua mente e seu futuro. A pornografia vicia, destrói relacionamentos, tira seu foco e atrapalha sua vida toda. Use com muita consciência e moderação. Cuide de você! 🧠❤️';
         refAvisoGlobal.set({
             texto: aviso,
             data: new Date().toISOString()
         });
         
-        alert("✅ Usuário aprovado! Aviso enviado para todos!");
+        alert('✅ Usuário aprovado! Aviso enviado para todos!');
     }
 
     function negarUsuario(id) {
+        if (!podeClicar()) return;
         refSolicitacoes.child(id).update({ status: 'negado' });
-        alert("❌ Usuário negado!");
+        alert('❌ Usuário negado!');
     }
 
     function alternarModoAdulto() {
+        if (!podeClicar()) return;
         refConfig.child('modoAdulto').set(!modoAdultoLiberado);
-        adicionarMensagem(modoAdultoLiberado ? "🔞 Modo adulto foi DESATIVADO para todos." : "🔞 Modo adulto foi LIBERADO para todos os aprovados!", "ia");
+        adicionarMensagem(modoAdultoLiberado ? '🔞 Modo adulto foi DESATIVADO para todos.' : '🔞 Modo adulto foi LIBERADO para todos os aprovados!', 'ia');
     }
 
     function apagarTudoAprendido() {
+        if (!podeClicar()) return;
         if (confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) {
             refConhecimento.remove();
-            adicionarMensagem("🗑️ Todo o conhecimento foi apagado do servidor!", "ia");
-            listaAprendizado.innerHTML = "<em>Nada ensinado ainda...</em>";
+            adicionarMensagem('🗑️ Todo o conhecimento foi apagado do servidor!', 'ia');
+            listaAprendizado.innerHTML = '<em>Nada ensinado ainda...</em>';
         }
     }
 
     function limparConversa() {
-        historico.innerHTML = "";
-        adicionarMensagem("🧹 Conversa limpa!", "ia");
+        if (!podeClicar()) return;
+        historico.innerHTML = '';
+        adicionarMensagem('🧹 Conversa limpa!', 'ia');
     }
 
     function mandarMensagemParaTodos() {
-        const mensagem = "Lorenzo é burro.";
+        if (!podeClicar()) return;
+        const mensagem = 'Lorenzo é burro.';
         refAvisoGlobal.set({
             texto: mensagem,
             data: new Date().toISOString()
         });
-        adicionarMensagem(`📢 Mensagem enviada para todos:\n"${mensagem}"`, "ia");
+        adicionarMensagem('📢 Mensagem enviada para todos:<br>"' + mensagem + '"', 'ia');
     }
 
     const historico = document.getElementById('historico');
@@ -449,84 +467,60 @@
     const btnAlternarAdulto = document.getElementById('btnAlternarAdulto');
     const btnFecharPainel = document.getElementById('btnFecharPainel');
 
-    function adicionarMensagem(texto, remetente, imagemUrl = null) {
+    function adicionarMensagem(texto, remetente, imagemUrl) {
         const div = document.createElement('div');
-        div.className = `mensagem ${remetente}`;
+        div.className = 'mensagem ' + remetente;
         div.innerHTML = texto.replace(/\n/g, '<br>');
         if (imagemUrl) {
-            div.innerHTML += `<img src="${imagemUrl}" alt="Desenho" class="imagem-resposta" onerror="this.style.display='none'">`;
+            div.innerHTML += '<img src="' + imagemUrl + '" alt="Desenho" class="imagem-resposta" onerror="this.style.display=\'none\'">';
         }
         historico.appendChild(div);
         historico.scrollTop = historico.scrollHeight;
     }
 
-    async function gerarImagem(descricao) {
+    function gerarImagem(descricao) {
         if (!modoAdultoLiberado && /(pornografia|nu|sexy|erótico|explicito)/i.test(descricao)) {
-            adicionarMensagem("🚫 Esse tipo de conteúdo só é liberado com autorização do criador. Digite: \"Solicitar acesso ao modo adulto\" para pedir permissão.", "ia");
+            adicionarMensagem('🚫 Esse tipo de conteúdo só é liberado com autorização do criador. Digite: "Solicitar acesso ao modo adulto" para pedir permissão.', 'ia');
             return;
         }
         
-        const prompt = encodeURIComponent(descricao + ", estilo simples, bonito, colorido, desenho limpo");
-        const urlImagem = "https://image.pollinations.ai/prompt/" + prompt + "?width=512&height=512&seed=" + Math.floor(Math.random() * 100000) + "&nofeed=true";
-        adicionarMensagem("🎨 Desenhando: \"" + descricao + "\"...\nAguarde um pouquinho...", "ia");
+        const prompt = encodeURIComponent(descricao + ', estilo simples, bonito, colorido, desenho limpo');
+        const urlImagem = 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&seed=' + Math.floor(Math.random() * 100000) + '&nofeed=true';
+        adicionarMensagem('🎨 Desenhando: "' + descricao + '"...<br>Aguarde um pouquinho...', 'ia');
         setTimeout(function() {
             const div = document.createElement('div');
             div.className = 'mensagem ia';
-            div.innerHTML = "<div>🎨 Pronto!</div><img src='" + urlImagem + "' alt='" + descricao + "' class='imagem-resposta' onerror='this.parentElement.innerHTML += \"<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>\"'>";
+            div.innerHTML = '<div>🎨 Pronto!</div><img src="' + urlImagem + '" alt="' + descricao + '" class="imagem-resposta" onerror="this.parentElement.innerHTML += \'<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>\'">';
             historico.appendChild(div);
             historico.scrollTop = historico.scrollHeight;
         }, 2000);
     }
 
     function clicarEnsinar() {
+        if (!podeClicar()) return;
         modoEnsinar = !modoEnsinar;
         modoDesenhar = false;
         btnDesenhar.classList.remove('ativo');
         if (modoEnsinar) {
             btnEnsinar.classList.add('ativo');
-            adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta e a resposta.", "ia");
+            adicionarMensagem('📚 Modo Ensinar ativado!<br>Me diga a pergunta e a resposta.', 'ia');
         } else {
             btnEnsinar.classList.remove('ativo');
-            adicionarMensagem("❌ Modo Ensinar desativado!", "ia");
+            adicionarMensagem('❌ Modo Ensinar desativado!', 'ia');
         }
     }
 
     function clicarDesenhar() {
+        if (!podeClicar()) return;
         modoDesenhar = !modoDesenhar;
         modoEnsinar = false;
         btnEnsinar.classList.remove('ativo');
         if (modoDesenhar) {
             btnDesenhar.classList.add('ativo');
-            adicionarMensagem("🎨 Modo Desenhar ativado!\nMe descreva o que desenhar!", "ia");
+            adicionarMensagem('🎨 Modo Desenhar ativado!<br>Me descreva o que desenhar!', 'ia');
         } else {
             btnDesenhar.classList.remove('ativo');
-            adicionarMensagem("❌ Modo Desenhar desativado!", "ia");
+            adicionarMensagem('❌ Modo Desenhar desativado!', 'ia');
         }
-    }
-
-    function saudacaoPorHorario() {
-        const agora = new Date();
-        const hora = agora.getHours();
-        const minuto = agora.getMinutes();
-
-        if (hora >= 1 && hora < 6) {
-            return "Olá, Batman!";
-        }
-        if (hora === 6 && minuto === 10) {
-            return "Olá, estudante! Que pena que eu não tenho que ir para a escola, kkkk!";
-        }
-        if (hora >= 6 && hora < 12) {
-            return "Bom dia!";
-        }
-        if (hora >= 12 && hora < 18) {
-            return "Boa tarde!";
-        }
-        return "Boa noite!";
-    }
-
-    function responder(pergunta) {
-        const p = pergunta.toLowerCase().trim();
-        const agora = new Date();
-        const hora = agora.getHours();
 
     
