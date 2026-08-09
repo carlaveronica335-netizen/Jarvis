@@ -12,6 +12,7 @@
     <title>JARVIS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        button { cursor: pointer; touch-action: manipulation; }
         :root {
             --fundo-escuro: #0f172a;
             --cor-primaria: #00d9ff;
@@ -84,16 +85,16 @@
         }
         .botao-modo {
             flex: 1;
-            padding: 10px;
+            padding: 12px 10px;
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: bold;
-            cursor: pointer;
             color: white;
-            transition: transform 0.15s;
+            background: gray;
+            transition: transform 0.1s;
         }
-        .botao-modo:active { transform: scale(0.97); }
+        .botao-modo:active { transform: scale(0.95); }
         .botao-modo.ensinar { background: var(--cor-botao-ensinar); }
         .botao-modo.ensinar.ativo { box-shadow: 0 0 12px var(--cor-botao-ensinar); }
         .botao-modo.desenhar { background: var(--cor-botao-desenhar); }
@@ -121,7 +122,6 @@
             background: var(--cor-primaria);
             color: white;
             font-size: 20px;
-            cursor: pointer;
             flex-shrink: 0;
         }
         .painel-adm {
@@ -137,10 +137,9 @@
             background: #ff4444;
             border: none;
             color: white;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 6px;
             margin-top: 10px;
-            cursor: pointer;
         }
         .info-aprendizado {
             background: rgba(0, 0, 0, 0.3);
@@ -168,21 +167,21 @@
     <div class="mensagem ia">
         📚 Toque em <strong>Ensinar</strong> para me dar conhecimento<br>
         🎨 Toque em <strong>Desenhar</strong> para eu criar imagens<br>
-        Comandos: <em>Oi Jarvis</em> / <em>Que horas são?</em> / <em>Quem te criou?</em> / <em>Quanto é 2+2</em>
+        Comandos: Oi Jarvis / Que horas são? / Quem te criou?
     </div>
 </div>
 
 <div class="entrada-area">
     <div class="botoes-modos">
-        <button class="botao-modo ensinar" id="btnEnsinar">📚 Ensinar</button>
-        <button class="botao-modo desenhar" id="btnDesenhar">🎨 Desenhar</button>
+        <button class="botao-modo ensinar" id="btnEnsinar" onclick="clicarEnsinar()">📚 Ensinar</button>
+        <button class="botao-modo desenhar" id="btnDesenhar" onclick="clicarDesenhar()">🎨 Desenhar</button>
     </div>
     <div class="caixa-envio">
-        <input type="text" id="entrada" placeholder="Escreva sua mensagem...">
-        <button id="btnEnviar">➤</button>
+        <input type="text" id="entrada" placeholder="Escreva sua mensagem..." onkeydown="teclaPressionada(event)">
+        <button id="btnEnviar" onclick="enviarMensagem()">➤</button>
     </div>
     <div class="comandos-dica">
-        Comandos: oi Jarvis / que horas são? / quem te criou? / quanto é 2+2
+        Comandos: Oi Jarvis / Que horas são? / Quem te criou?
     </div>
 </div>
 
@@ -192,7 +191,7 @@
     <div class="info-aprendizado" id="listaAprendizado">
         <em>Nada ensinado ainda...</em>
     </div>
-    <button class="btn-fechar" id="btnFecharAdm">Fechar</button>
+    <button class="btn-fechar" id="btnFecharAdm" onclick="fecharPainelAdm()">Fechar</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
@@ -227,11 +226,9 @@
 
     const historico = document.getElementById('historico');
     const entrada = document.getElementById('entrada');
-    const btnEnviar = document.getElementById('btnEnviar');
     const btnEnsinar = document.getElementById('btnEnsinar');
     const btnDesenhar = document.getElementById('btnDesenhar');
     const painelAdm = document.getElementById('painelAdm');
-    const btnFecharAdm = document.getElementById('btnFecharAdm');
     const listaAprendizado = document.getElementById('listaAprendizado');
 
     function adicionarMensagem(texto, remetente, imagemUrl = null) {
@@ -261,7 +258,7 @@
         }, 2000);
     }
 
-    btnEnsinar.addEventListener('click', () => {
+    function clicarEnsinar() {
         modoEnsinar = !modoEnsinar;
         modoDesenhar = false;
         btnDesenhar.classList.remove('ativo');
@@ -272,9 +269,9 @@
             btnEnsinar.classList.remove('ativo');
             adicionarMensagem("❌ Modo Ensinar desativado!", "ia");
         }
-    });
+    }
 
-    btnDesenhar.addEventListener('click', () => {
+    function clicarDesenhar() {
         modoDesenhar = !modoDesenhar;
         modoEnsinar = false;
         btnEnsinar.classList.remove('ativo');
@@ -285,34 +282,25 @@
             btnDesenhar.classList.remove('ativo');
             adicionarMensagem("❌ Modo Desenhar desativado!", "ia");
         }
-    });
+    }
 
     function saudacaoPorHorario() {
         const agora = new Date();
         const hora = agora.getHours();
         const minuto = agora.getMinutes();
 
-        // 1h até 5h59 → Olá, Batman!
         if (hora >= 1 && hora < 6) {
             return "Olá, Batman!";
         }
-
-        // Exatamente 6h10 → Olá, estudante! + frase
         if (hora === 6 && minuto === 10) {
             return "Olá, estudante! Que pena que eu não tenho que ir para a escola, kkkk!";
         }
-
-        // 6h até 11h59 → Bom dia!
         if (hora >= 6 && hora < 12) {
             return "Bom dia!";
         }
-
-        // 12h até 17h59 → Boa tarde!
         if (hora >= 12 && hora < 18) {
             return "Boa tarde!";
         }
-
-        // 18h até 23h59 → Boa noite!
         return "Boa noite!";
     }
 
@@ -322,36 +310,26 @@
         const hora = agora.getHours();
         const minuto = agora.getMinutes();
 
-        // === ZOEIRA COM O LORENZO ===
         if (p.includes("eu sou amigo do seu criador") && p.includes("qual é o meu nome")) {
             return "Bem, então você é o Lorenzo! Eu sei uma coisa... que você é muito burro! LOL 🤣";
         }
-
-        // === SAUDAÇÃO POR HORÁRIO ===
         if (p.includes("oi jarvis") || p === "oi") {
             return saudacaoPorHorario();
         }
-
-        // === QUE HORAS SÃO ===
         if (p.includes("que horas são") || p.includes("horas são") || p.includes("que horas é")) {
             const h = hora.toString().padStart(2, '0');
             const m = minuto.toString().padStart(2, '0');
             const s = agora.getSeconds().toString().padStart(2, '0');
             return `Agora são ${h}:${m}:${s} ⏰`;
         }
-
-        // === QUEM TE CRIOU / PAINEL ADM ===
         if (p.includes("quem te criou") || p.includes("quem é seu criador")) {
             abrirPainelAdm();
             return "Você é o meu criador!\nPainel de Administração desbloqueado!";
         }
-
         if (p === senhaAdm || p.includes(senhaAdm)) {
             abrirPainelAdm();
             return "Painel de Administração desbloqueado!\nBem-vindo!";
         }
-
-        // === CÁLCULOS ===
         const calc = p.match(/quanto é\s*(\d+)\s*([+\-×*÷/])\s*(\d+)/);
         if (calc) {
             const a = parseFloat(calc[1]);
@@ -364,10 +342,7 @@
             else if (op === '÷' || op === '/') res = Math.round((a / b) * 100) / 100;
             if (res !== undefined) return `${a} ${op} ${b} = ${res} ✅`;
         }
-
-        // === RESPOSTAS SALVAS NO FIREBASE ===
         if (conhecimento[p]) return conhecimento[p];
-
         return "Ainda não sei isso... 🤔\nUse o botão Ensinar para me ensinar!";
     }
 
@@ -384,9 +359,9 @@
         listaAprendizado.innerHTML = texto;
     }
 
-    btnFecharAdm.addEventListener('click', () => {
+    function fecharPainelAdm() {
         painelAdm.classList.remove('aberto');
-    });
+    }
 
     function enviarMensagem() {
         const texto = entrada.value.trim();
@@ -411,5 +386,27 @@
             if (partes.length >= 2) {
                 const pergunta = partes[0].trim();
                 const resposta = partes.slice(1).join('=').trim();
+                salvarConhecimento(pergunta, resposta);
+                adicionarMensagem(`📚 Eu aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`, "ia");
+            } else {
+                adicionarMensagem("⚠️ Escreva assim: pergunta = resposta", "ia");
+            }
+            return;
+        }
 
-        
+        adicionarMensagem(texto, "usuario");
+        setTimeout(() => {
+            const resp = responder(texto);
+            adicionarMensagem(resp, "ia");
+        }, 400);
+    }
+
+    function teclaPressionada(evento) {
+        if (evento.key === 'Enter') enviarMensagem();
+    }
+</script>
+
+</body>
+    </html>
+
+    
