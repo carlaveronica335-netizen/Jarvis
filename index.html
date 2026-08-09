@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS 2.1</title>
+    <title>JARVIS 2.2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body {
@@ -20,30 +20,48 @@
         .conectado { color: #00ff88; }
         .desconectado { color: #ff4444; }
 
-        .botoes-modos { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
-        .btn-modo {
-            flex: 1; min-width: 130px; padding: 12px; border: none; border-radius: 10px;
-            font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-ensinar { background: linear-gradient(135deg, #ff9500, #e67e00); color: white; }
-        .btn-ensinar.ativo { box-shadow: 0 0 12px #ff9500; transform: scale(0.98); }
-        .btn-desenhar { background: linear-gradient(135deg, #9922ff, #7b00d9); color: white; }
-        .btn-desenhar.ativo { box-shadow: 0 0 12px #9922ff; transform: scale(0.98); }
-
         .painel-criador {
-            background: rgba(0, 0, 0, 0.35); border-radius: 10px; padding: 12px; margin: 10px 0;
-            border: 1px solid #444;
+            background: rgba(0, 0, 0, 0.5); border-radius: 12px; padding: 16px; margin: 12px 0;
+            border: 2px solid #ffd700; box-shadow: 0 0 15px #ffd70044;
+            display: none; animation: aparecer 0.3s ease-out; max-height: 80vh; overflow-y: auto;
         }
-        .painel-titulo { font-weight: bold; color: #00d9ff; margin-bottom: 8px; font-size: 15px; }
-        .botoes-painel { display: flex; gap: 8px; flex-wrap: wrap; }
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .painel-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .painel-titulo { font-weight: bold; color: #ffd700; font-size: 16px; }
+        .btn-fechar {
+            background: #ff4444; border: none; color: white; width: 32px; height: 32px;
+            border-radius: 50%; font-size: 18px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-fechar:hover { background: #cc0000; }
+
+        .estatisticas {
+            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;
+            display: flex; gap: 15px; flex-wrap: wrap;
+        }
+        .estat { text-align: center; }
+        .estat-num { font-size: 20px; font-weight: bold; color: #ffd700; }
+        .estat-texto { font-size: 12px; color: #aaa; }
+
+        .historico {
+            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;
+            max-height: 200px; overflow-y: auto; font-size: 13px;
+        }
+        .historico-item { padding: 4px 0; border-bottom: 1px solid #333; word-break: break-word; }
+        .historico-data { color: #888; font-size: 11px; }
+
+        .botoes-painel { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
         .btn-painel {
-            padding: 7px 12px; background: #334155; color: white; border: none; border-radius: 6px;
-            cursor: pointer; font-size: 14px;
+            padding: 8px 14px; background: #334155; color: white; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 14px; transition: background 0.2s;
         }
         .btn-painel:hover { background: #475569; }
         .senha-campo {
-            margin-top: 8px; padding: 8px; border-radius: 6px; border: 1px solid #555;
-            background: #1e293b; color: white; width: 100%; max-width: 280px;
+            padding: 10px; border-radius: 6px; border: 1px solid #ffd700;
+            background: #1e293b; color: white; width: 100%; max-width: 280px; font-size: 15px;
         }
 
         .chat {
@@ -55,6 +73,18 @@
         .jarvis { background: #9922ff22; margin-right: auto; border-bottom-left-radius: 4px; }
         .digitando { color: #888; font-style: italic; }
 
+        .entrada-container { display: flex; flex-direction: column; gap: 8px; }
+        .botoes-modos { display: flex; gap: 8px; }
+        .btn-modo {
+            flex: 1; padding: 10px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .btn-ensinar { background: linear-gradient(135deg, #ff9500, #e67e00); color: white; }
+        .btn-ensinar.ativo { box-shadow: 0 0 12px #ff9500; transform: scale(0.98); }
+        .btn-desenhar { background: linear-gradient(135deg, #9922ff, #7b00d9); color: white; }
+        .btn-desenhar.ativo { box-shadow: 0 0 12px #9922ff; transform: scale(0.98); }
+
         .entrada { display: flex; gap: 10px; align-items: center; }
         #mensagem {
             flex: 1; padding: 14px; border-radius: 25px; border: 2px solid #00d9ff;
@@ -64,67 +94,139 @@
             width: 52px; height: 52px; border-radius: 50%; border: none;
             background: linear-gradient(135deg, #00d9ff, #0088ff); color: white;
             font-size: 20px; cursor: pointer; box-shadow: 0 0 8px #00d9ff66;
+            user-select: none; -webkit-tap-highlight-color: transparent;
         }
-        .oculto { display: none !important; }
-        .comandos { font-size: 13px; color: #94a3b8; margin-top: 6px; }
+        .comandos { font-size: 13px; color: #94a3b8; margin-top: 4px; }
     </style>
 </head>
 <body>
 
     <div class="cabecalho">
-        <div class="titulo">🤖 JARVIS 2.1</div>
+        <div class="titulo">🤖 JARVIS 2.2</div>
         <div class="status" id="status">Conectado ✅</div>
+    </div>
 
-        <div class="botoes-modos">
-            <button class="btn-modo btn-ensinar" id="btnEnsinar">📚 Ensinar</button>
-            <button class="btn-modo btn-desenhar" id="btnDesenhar">🎨 Desenhar</button>
+    <div class="painel-criador" id="painelCriador">
+        <div class="painel-cabecalho">
+            <div class="painel-titulo">⚙️ PAINEL DO CRIADOR</div>
+            <button class="btn-fechar" id="btnFechar">❌</button>
         </div>
 
-        <div class="painel-criador" id="painelCriador">
-            <div class="painel-titulo">⚙️ Painel do Criador</div>
-            <div class="botoes-painel">
-                <button class="btn-painel" id="btnLimpar">🧹 Limpar Conversa</button>
-                <button class="btn-painel" id="btnVerConhecimento">📋 Ver Conhecimento</button>
-                <button class="btn-painel" id="btnApagarTudo">🗑️ Apagar Tudo</button>
+        <div class="estatisticas">
+            <div class="estat">
+                <div class="estat-num" id="contUsuarios">0</div>
+                <div class="estat-texto">Pessoas usando</div>
             </div>
-            <input type="password" class="senha-campo" id="senhaAdmin" placeholder="Senha do Criador">
+            <div class="estat">
+                <div class="estat-num" id="contPerguntas">0</div>
+                <div class="estat-texto">Perguntas feitas</div>
+            </div>
+            <div class="estat">
+                <div class="estat-num" id="contConhecimento">0</div>
+                <div class="estat-texto">Coisas aprendidas</div>
+            </div>
         </div>
+
+        <div class="historico" id="historico">
+            <strong>📝 Últimas perguntas:</strong><br>
+            Ainda não há registros...
+        </div>
+
+        <div class="botoes-painel">
+            <button class="btn-painel" id="btnLimparConversa">🧹 Limpar Conversa</button>
+            <button class="btn-painel" id="btnLimparHistorico">📜 Limpar Histórico</button>
+            <button class="btn-painel" id="btnApagarTudo">🗑️ Apagar Tudo</button>
+        </div>
+        <input type="password" class="senha-campo" id="senhaAdmin" placeholder="Senha">
     </div>
 
     <div class="chat" id="chat">
         <div class="mensagem jarvis">
-            Olá! Eu sou o JARVIS 2.1! 🤖<br><br>
-            📚 Toque em Ensinar pra me dar conhecimento novo<br>
+            Olá! Eu sou o JARVIS 2.2! 🤖<br><br>
+            📚 Toque em Ensinar pra me dar conhecimento<br>
             🎨 Toque em Desenhar pra eu criar imagens<br>
-            Pergunte as horas, cálculos, ou qualquer coisa que você me ensinou! Em que posso ajudar?
+            Pergunte as horas, cálculos, ou qualquer coisa que você me ensinou!
         </div>
     </div>
 
-    <div class="entrada">
-        <input type="text" id="mensagem" placeholder="Escreva sua mensagem...">
-        <button id="enviar">➤</button>
+    <div class="entrada-container">
+        <div class="botoes-modos">
+            <button class="btn-modo btn-ensinar" id="btnEnsinar">📚 Ensinar</button>
+            <button class="btn-modo btn-desenhar" id="btnDesenhar">🎨 Desenhar</button>
+        </div>
+        <div class="entrada">
+            <input type="text" id="mensagem" placeholder="Escreva sua mensagem...">
+            <button id="enviar">➤</button>
+        </div>
+        <div class="comandos">Comandos: que horas são? / quem te criou? / digite a senha secreta</div>
     </div>
-    <div class="comandos">Comandos: que horas são? / quanto é 2+2? / desenhe um gato</div>
 
 <script>
 const senhaCorreta = "Wubba Lubba Dub Dub";
+const CRIADOR = "Você é o meu criador! 🤖❤️";
+
 const btnEnsinar = document.getElementById("btnEnsinar");
 const btnDesenhar = document.getElementById("btnDesenhar");
+const painelCriador = document.getElementById("painelCriador");
+const btnFechar = document.getElementById("btnFechar");
 const chat = document.getElementById("chat");
 const mensagemEl = document.getElementById("mensagem");
 const btnEnviar = document.getElementById("enviar");
-const btnLimpar = document.getElementById("btnLimpar");
-const btnVerConhecimento = document.getElementById("btnVerConhecimento");
+const btnLimparConversa = document.getElementById("btnLimparConversa");
+const btnLimparHistorico = document.getElementById("btnLimparHistorico");
 const btnApagarTudo = document.getElementById("btnApagarTudo");
 const senhaAdmin = document.getElementById("senhaAdmin");
 const statusEl = document.getElementById("status");
+const contUsuarios = document.getElementById("contUsuarios");
+const contPerguntas = document.getElementById("contPerguntas");
+const contConhecimento = document.getElementById("contConhecimento");
+const historicoEl = document.getElementById("historico");
 
-let modo = "conversa"; // conversa | ensinar | desenhar
+let modo = "conversa";
 let ensinarEtapa = 0;
 let perguntaGuardada = "";
 let conhecimento = JSON.parse(localStorage.getItem("conhecimentoJarvis") || "{}");
+let historico = JSON.parse(localStorage.getItem("historicoJarvis") || "[]");
+let totalPerguntas = parseInt(localStorage.getItem("totalPerguntas") || "0");
+let totalUsuarios = parseInt(localStorage.getItem("totalUsuarios") || "1");
 
-// === DETECTAR CONEXÃO ===
+if(!localStorage.getItem("jaVisitou")){
+    localStorage.setItem("jaVisitou", "sim");
+    totalUsuarios += 1;
+    localStorage.setItem("totalUsuarios", totalUsuarios);
+}
+
+function atualizarNumeros(){
+    contUsuarios.textContent = totalUsuarios;
+    contPerguntas.textContent = totalPerguntas;
+    contConhecimento.textContent = Object.keys(conhecimento).length;
+}
+
+function atualizarHistoricoNaTela(){
+    if(historico.length === 0){
+        historicoEl.innerHTML = "<strong>📝 Últimas perguntas:</strong><br>Ainda não há registros...";
+        return;
+    }
+    let html = "<strong>📝 Últimas perguntas:</strong><br>";
+    historico.slice(-15).reverse().forEach(item => {
+        html += `<div class="historico-item"><span class="historico-data">${item.data}</span><br>${item.texto}</div>`;
+    });
+    historicoEl.innerHTML = html;
+}
+
+function salvarNoHistorico(texto){
+    totalPerguntas += 1;
+    localStorage.setItem("totalPerguntas", totalPerguntas);
+    historico.push({
+        texto: texto,
+        data: new Date().toLocaleString('pt-BR')
+    });
+    if(historico.length > 50) historico.shift();
+    localStorage.setItem("historicoJarvis", JSON.stringify(historico));
+    atualizarNumeros();
+    atualizarHistoricoNaTela();
+}
+
 function atualizarStatus(){
     if(navigator.onLine) statusEl.innerHTML = "Conectado ✅";
     else statusEl.innerHTML = "<span class='desconectado'>Sem conexão ❌</span>";
@@ -133,7 +235,16 @@ window.addEventListener("online", atualizarStatus);
 window.addEventListener("offline", atualizarStatus);
 atualizarStatus();
 
-// === MENSAGENS NA TELA ===
+function abrirPainel(){
+    painelCriador.style.display = "block";
+    atualizarNumeros();
+    atualizarHistoricoNaTela();
+}
+function fecharPainel(){
+    painelCriador.style.display = "none";
+}
+btnFechar.addEventListener("click", fecharPainel);
+
 function adicionarMensagem(texto, remetente){
     const div = document.createElement("div");
     div.classList.add("mensagem", remetente);
@@ -154,16 +265,15 @@ function removerDigitando(){
     const d = document.getElementById("digitando"); if(d) d.remove();
 }
 
-// === MUDAR MODO ===
 btnEnsinar.addEventListener("click", ()=>{
     modo = modo === "ensinar" ? "conversa" : "ensinar";
     ensinarEtapa = 0; perguntaGuardada = "";
     btnEnsinar.classList.toggle("ativo", modo === "ensinar");
     btnDesenhar.classList.remove("ativo");
     if(modo === "ensinar"){
-        adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta ou assunto que quer me ensinar.", "jarvis");
+        adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta ou assunto.", "jarvis");
     } else {
-        adicionarMensagem("Modo Ensinar desativado. Voltando ao normal!", "jarvis");
+        adicionarMensagem("Modo Ensinar desativado!", "jarvis");
     }
 });
 
@@ -172,92 +282,98 @@ btnDesenhar.addEventListener("click", ()=>{
     btnDesenhar.classList.toggle("ativo", modo === "desenhar");
     btnEnsinar.classList.remove("ativo");
     if(modo === "desenhar"){
-        adicionarMensagem("🎨 Modo Desenhar ativado!\nMe descreva o que quer que eu desenhe!", "jarvis");
+        adicionarMensagem("🎨 Modo Desenhar ativado!\nMe descreva o que desenhar!", "jarvis");
     }
 });
 
-// === LÓGICA PRINCIPAL ===
+function salvarConhecimento(){
+    localStorage.setItem("conhecimentoJarvis", JSON.stringify(conhecimento));
+    atualizarNumeros();
+}
+
 function responder(texto){
     mostrarDigitando();
     setTimeout(()=>{
         removerDigitando();
         let resp = "";
+        const tx = texto.toLowerCase();
 
-        // MODO ENSINAR
-        if(modo === "ensinar"){
+        if(/quem te criou|quem é seu criador|seu criador|quem te fez/i.test(tx) || tx === senhaCorreta.toLowerCase()){
+            abrirPainel();
+            resp = CRIADOR + "\n\n🔓 Painel de Administração desbloqueado!";
+        }
+        else if(modo === "ensinar"){
             if(ensinarEtapa === 0){
                 perguntaGuardada = texto;
                 ensinarEtapa = 1;
-                resp = `Ótimo! ✅ Agora me diga qual deve ser a resposta para: "${texto}"`;
+                resp = `Ótimo! ✅ Agora me diga a resposta para: "${texto}"`;
             } else if(ensinarEtapa === 1){
                 conhecimento[perguntaGuardada.toLowerCase()] = texto;
                 salvarConhecimento();
                 ensinarEtapa = 0; perguntaGuardada = "";
-                resp = `Aprendi com sucesso! 🧠✅\nQuando alguém perguntar "${perguntaGuardada}", eu respondo: "${texto}"`;
+                resp = `Aprendi com sucesso! 🧠✅`;
             }
         }
-        // MODO DESENHAR
         else if(modo === "desenhar"){
-            resp = `🎨 Desenhando: "${texto}"...\n\n🔗 [Imagem de ${texto} — gerando...]\n\n*(No servidor completo eu mostro o desenho aqui!)*`;
+            resp = `🎨 Desenhando: "${texto}"...\n\nPronto! ✅`;
         }
-        // COMANDOS ESPECIAIS
-        else if(/que horas são/i.test(texto)){
+        else if(/que horas são/i.test(tx)){
             const agora = new Date();
             resp = `Agora são ${agora.toLocaleTimeString('pt-BR')} ⏰`;
-        } else if(/quanto é|calcula|somar|subtrair|multiplicar|dividir/i.test(texto) || texto.match(/\d+\s*[+\-*/]\s*\d+/)){
+        } else if(/quanto é|calcula/i.test(tx) || texto.match(/\d+\s*[+\-*/]\s*\d+/)){
             const expr = texto.match(/[\d.]+\s*[+\-*/]\s*[\d.]+/);
             if(expr){
-                try {
-                    const res = eval(expr[0]);
-                    resp = `${expr[0]} = ${res} ✅`;
-                } catch { resp = "Não consegui calcular 😅"; }
-            } else resp = "Diga os números e a operação, por exemplo: quanto é 5+3";
+                try { const res = eval(expr[0]); resp = `${expr[0]} = ${res} ✅`; }
+                catch { resp = "Não consegui calcular 😅"; }
+            } else resp = "Exemplo: quanto é 5+3";
         }
-        // CONHECIMENTO SALVO
-        else if(conhecimento[texto.toLowerCase()]){
-            resp = conhecimento[texto.toLowerCase()];
+        else if(conhecimento[tx]){
+            resp = conhecimento[tx];
         }
-        // FIM
         else {
-            resp = `Ainda não aprendi isso! 🤔\nToque em 📚 Ensinar pra me ensinar a responder sobre: "${texto}"!`;
+            resp = `Ainda não aprendi isso! 🤔\nToque em 📚 Ensinar pra me ensinar!`;
         }
 
         adicionarMensagem(resp, "jarvis");
     }, 800);
 }
 
-// === SALVAR CONHECIMENTO ===
-function salvarConhecimento(){
-    localStorage.setItem("conhecimentoJarvis", JSON.stringify(conhecimento));
-}
-
-// === PAINEL DO CRIADOR ===
-btnLimpar.addEventListener("click", ()=>{
+btnLimparConversa.addEventListener("click", ()=>{
+    if(senhaAdmin.value !== senhaCorreta) return adicionarMensagem("❌ Senha errada!", "jarvis");
     chat.innerHTML = "";
     adicionarMensagem("Conversa limpa! ✅", "jarvis");
 });
 
-btnVerConhecimento.addEventListener("click", ()=>{
+btnLimparHistorico.addEventListener("click", ()=>{
     if(senhaAdmin.value !== senhaCorreta) return adicionarMensagem("❌ Senha errada!", "jarvis");
-    const itens = Object.entries(conhecimento);
-    if(itens.length === 0) return adicionarMensagem("Ainda não aprendi nada! 📭", "jarvis");
-    let txt = "📋 Meu Conhecimento:\n\n";
-    itens.forEach(([p, r])=> txt += `P: ${p}\nR: ${r}\n---\n`);
-    adicionarMensagem(txt, "jarvis");
+    historico = [];
+    totalPerguntas = 0;
+    localStorage.setItem("historicoJarvis", "[]");
+    localStorage.setItem("totalPerguntas", "0");
+    atualizarNumeros();
+    atualizarHistoricoNaTela();
+    adicionarMensagem("📜 Histórico e contador zerados! ✅", "jarvis");
 });
 
 btnApagarTudo.addEventListener("click", ()=>{
     if(senhaAdmin.value !== senhaCorreta) return adicionarMensagem("❌ Senha errada!", "jarvis");
-    if(confirm("Tem certeza? Vai apagar TUDO que aprendi!")){
-        conhecimento = {}; salvarConhecimento();
-        adicionarMensagem("🗑️ Todo o conhecimento foi apagado!", "jarvis");
+    if(confirm("Tem certeza? Vai apagar TUDO!")){
+        conhecimento = {};
+        historico = [];
+        totalPerguntas = 0;
+        localStorage.removeItem("conhecimentoJarvis");
+        localStorage.removeItem("historicoJarvis");
+        localStorage.removeItem("totalPerguntas");
+        atualizarNumeros();
+        atualizarHistoricoNaTela();
+        adicionarMensagem("🗑️ TUDO foi apagado!", "jarvis");
     }
 });
 
-// === ENVIAR MENSAGEM ===
 function enviar(){
     const texto = mensagemEl.value.trim();
     if(!texto) return;
+    salvarNoHistorico(texto);
     adicionarMensagem(texto, "eu");
     mensagemEl.value = "";
     responder(texto);
@@ -266,7 +382,7 @@ function enviar(){
 btnEnviar.addEventListener("click", enviar);
 mensagemEl.addEventListener("keydown", e=>{ if(e.key === "Enter") enviar(); });
 
+atualizarNumeros();
 </script>
 </body>
-  </html>
-  
+</html>
