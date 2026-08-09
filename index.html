@@ -23,6 +23,7 @@
             --cor-perigo: #ff3333;
             --cor-aviso: #ffcc00;
             --cor-mensagem: #00cc66;
+            --cor-adulto: #ff4466;
         }
         html, body { height: 100%; }
         body {
@@ -43,6 +44,11 @@
         .cabecalho h1 {
             color: var(--cor-primaria);
             font-size: 22px;
+        }
+        .cabecalho h1 .modo-adulto {
+            color: var(--cor-adulto);
+            font-size: 16px;
+            margin-left: 8px;
         }
         .historico {
             flex: 1;
@@ -76,6 +82,16 @@
             font-weight: bold;
             animation: piscar 1s infinite alternate;
         }
+        .mensagem.solicitacao {
+            background: rgba(255, 68, 102, 0.15);
+            border: 2px dashed var(--cor-adulto);
+            max-width: 100%;
+        }
+        .mensagem.aviso-alerta {
+            background: rgba(255, 68, 102, 0.2);
+            border: 2px solid var(--cor-adulto);
+            max-width: 100%;
+        }
         @keyframes piscar {
             from { box-shadow: 0 0 5px #ffcc00; }
             to { box-shadow: 0 0 20px #ffcc00; }
@@ -92,6 +108,10 @@
             border-top: 2px solid var(--cor-primaria);
             background: rgba(0, 0, 0, 0.3);
             padding-bottom: calc(15px + env(safe-area-inset-bottom));
+        }
+        .entrada-area.bloqueada {
+            opacity: 0.5;
+            pointer-events: none;
         }
         .botoes-modos {
             display: flex;
@@ -167,12 +187,13 @@
         .botao-apagar { background: var(--cor-perigo); }
         .botao-limpar { background: var(--cor-aviso); color: #000; }
         .botao-mensagem { background: var(--cor-mensagem); }
+        .botao-adulto { background: var(--cor-adulto); }
         .botao-fechar {
             background: #444;
             width: 100%;
             margin-top: 8px;
         }
-        .info-aprendizado {
+        .info-aprendizado, .lista-solicitacoes {
             background: rgba(0, 0, 0, 0.3);
             padding: 10px;
             border-radius: 8px;
@@ -181,28 +202,44 @@
             overflow-y: auto;
             font-size: 13px;
         }
+        .solicitacao-item {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
         .comandos-dica {
             font-size: 12px;
             color: #88aacc;
             margin-top: 8px;
+            line-height: 1.6;
         }
+        .botao-aprovar { background: #00cc66; border: none; padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
+        .botao-negar { background: #ff3333; border: none; padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="cabecalho">
-    <h1>🤖 JARVIS</h1>
+    <h1>🤖 JARVIS <span id="indicadorModoAdulto" class="modo-adulto" style="display:none;">🔞 MODO ADULTO LIBERADO</span></h1>
 </div>
 
 <div class="historico" id="historico">
     <div class="mensagem ia">
-        📚 Toque em <strong>Ensinar</strong> para me dar conhecimento<br>
-        🎨 Toque em <strong>Desenhar</strong> para eu criar imagens<br>
-        Comandos: Oi Jarvis / Que horas são? / Quem te criou?
+        💡 <strong>O que eu posso fazer:</strong><br><br>
+        ✅ Dizer oi e te cumprimentar de um jeito diferente dependendo da hora<br>
+        ✅ Responder que horas são agora<br>
+        ✅ Fazer contas de mais, menos, vezes e divisão<br>
+        ✅ Aprender coisas novas quando alguém me ensinar<br>
+        ✅ Criar desenhos e imagens com o que você me pedir<br><br>
+        Use os botões abaixo para ativar os modos! 👇
     </div>
 </div>
 
-<div class="entrada-area">
+<div class="entrada-area" id="areaEntrada">
     <div class="botoes-modos">
         <button class="botao-modo ensinar" id="btnEnsinar" onclick="clicarEnsinar()">📚 Ensinar</button>
         <button class="botao-modo desenhar" id="btnDesenhar" onclick="clicarDesenhar()">🎨 Desenhar</button>
@@ -212,7 +249,7 @@
         <button id="btnEnviar" onclick="enviarMensagem()">➤</button>
     </div>
     <div class="comandos-dica">
-        Comandos: Oi Jarvis / Que horas são? / Quem te criou?
+        Exemplos: "Oi Jarvis" / "Que horas são?" / "Quanto é 2 + 2?"
     </div>
 </div>
 
@@ -220,11 +257,18 @@
     <h3>🔐 Painel de Administração</h3>
     
     <div class="botoes-adm">
-        <button class="botao-adm botao-apagar" onclick="apagarTudoAprendido()">🗑️ Apagar o que ela aprendeu</button>
+        <button class="botao-adm botao-apagar" onclick="apagarTudoAprendido()">🗑️ Apagar conhecimento</button>
         <button class="botao-adm botao-limpar" onclick="limparConversa()">🧹 Limpar Conversa</button>
-        <button class="botao-adm botao-mensagem" onclick="mandarMensagemParaTodos()">📢 Mandar mensagem para todos</button>
+        <button class="botao-adm botao-mensagem" onclick="mandarMensagemParaTodos()">📢 Aviso para todos</button>
+        <button class="botao-adm botao-adulto" onclick="alternarModoAdulto()">🔞 Alternar Modo Adulto</button>
     </div>
 
+    <h4 style="margin-top:12px;">📋 Solicitações de liberação:</h4>
+    <div class="lista-solicitacoes" id="listaSolicitacoes">
+        <em>Nenhuma solicitação pendente...</em>
+    </div>
+
+    <h4 style="margin-top:12px;">📚 Conhecimento salvo:</h4>
     <div class="info-aprendizado" id="listaAprendizado">
         <em>Nada ensinado ainda...</em>
     </div>
@@ -249,18 +293,22 @@
     const db = firebase.database();
     const refConhecimento = db.ref('conhecimento');
     const refAvisoGlobal = db.ref('avisoGlobal');
+    const refSolicitacoes = db.ref('solicitacoesAdulto');
+    const refConfig = db.ref('configuracao');
 
     let conhecimento = {};
     let modoEnsinar = false;
     let modoDesenhar = false;
     let senhaAdm = "Wubba Lubba Dub Dub";
     let ultimoAvisoRecebido = "";
+    let modoAdultoLiberado = false;
+    let usuarioId = localStorage.getItem('usuarioId') || ('usuario_' + Math.random().toString(36).substr(2, 9));
+    localStorage.setItem('usuarioId', usuarioId);
 
     refConhecimento.on('value', (snapshot) => {
         conhecimento = snapshot.val() || {};
     });
 
-    // Recebe mensagem enviada para todos em TEMPO REAL
     refAvisoGlobal.on('value', (snapshot) => {
         const aviso = snapshot.val();
         if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
@@ -268,6 +316,31 @@
             mostrarAvisoGlobal(aviso.texto);
         }
     });
+
+    refSolicitacoes.on('value', (snapshot) => {
+        const dados = snapshot.val() || {};
+        atualizarListaSolicitacoes(dados);
+    });
+
+    refConfig.child('modoAdulto').on('value', (snapshot) => {
+        modoAdultoLiberado = snapshot.val() === true;
+        atualizarIndicadorModoAdulto();
+    });
+
+    refConfig.child('usuariosLiberados').on('value', (snapshot) => {
+        const liberados = snapshot.val() || {};
+        if (liberados[usuarioId]) {
+            localStorage.setItem('liberadoAdulto', 'sim');
+        }
+    });
+
+    function verificarLiberacao() {
+        return localStorage.getItem('liberadoAdulto') === 'sim';
+    }
+
+    function atualizarIndicadorModoAdulto() {
+        document.getElementById('indicadorModoAdulto').style.display = modoAdultoLiberado ? 'inline' : 'none';
+    }
 
     function salvarConhecimento(pergunta, resposta) {
         refConhecimento.child(pergunta.toLowerCase()).set(resposta);
@@ -281,7 +354,67 @@
         historico.scrollTop = historico.scrollHeight;
     }
 
-    // ========== FUNÇÕES DOS BOTÕES DO ADM ==========
+    function solicitarLiberacao() {
+        const nomeSolicitante = prompt("Digite seu nome ou apelido para enviar a solicitação:");
+        if (!nomeSolicitante) return;
+        
+        refSolicitacoes.child(usuarioId).set({
+            nome: nomeSolicitante,
+            usuarioId: usuarioId,
+            data: new Date().toISOString(),
+            status: 'pendente'
+        });
+        
+        adicionarMensagem(`📋 Solicitação enviada! Aguarde o criador confirmar.`, "ia");
+    }
+
+    function atualizarListaSolicitacoes(dados) {
+        const lista = document.getElementById('listaSolicitacoes');
+        const entradas = Object.entries(dados).filter(([_, d]) => d.status === 'pendente');
+        
+        if (entradas.length === 0) {
+            lista.innerHTML = "<em>Nenhuma solicitação pendente...</em>";
+            return;
+        }
+        
+        lista.innerHTML = "";
+        entradas.forEach(([id, dados]) => {
+            const item = document.createElement('div');
+            item.className = 'solicitacao-item';
+            item.innerHTML = `
+                <div><strong>${dados.nome || 'Anônimo'}</strong><br><small>${new Date(dados.data).toLocaleString('pt-BR')}</small></div>
+                <div>
+                    <button class="botao-aprovar" onclick="aprovarUsuario('${id}')">✅ Aprovar +18</button>
+                    <button class="botao-negar" onclick="negarUsuario('${id}')">❌ Negar</button>
+                </div>
+            `;
+            lista.appendChild(item);
+        });
+    }
+
+    function aprovarUsuario(id) {
+        refSolicitacoes.child(id).update({ status: 'aprovado' });
+        refConfig.child('usuariosLiberados').child(id).set(true);
+        
+        const aviso = `⚠️ AVISO IMPORTANTE — O que você vai ver pode prejudicar sua mente e seu futuro. A pornografia vicia, destrói relacionamentos, tira seu foco e atrapalha sua vida toda. Use com muita consciência e moderação. Cuide de você! 🧠❤️`;
+        refAvisoGlobal.set({
+            texto: aviso,
+            data: new Date().toISOString()
+        });
+        
+        alert("✅ Usuário aprovado! Aviso enviado para todos!");
+    }
+
+    function negarUsuario(id) {
+        refSolicitacoes.child(id).update({ status: 'negado' });
+        alert("❌ Usuário negado!");
+    }
+
+    function alternarModoAdulto() {
+        refConfig.child('modoAdulto').set(!modoAdultoLiberado);
+        adicionarMensagem(modoAdultoLiberado ? "🔞 Modo adulto foi DESATIVADO para todos." : "🔞 Modo adulto foi LIBERADO para todos os aprovados!", "ia");
+    }
+
     function apagarTudoAprendido() {
         if (confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) {
             refConhecimento.remove();
@@ -303,7 +436,6 @@
         });
         adicionarMensagem(`📢 Mensagem enviada para todos:\n"${mensagem}"`, "ia");
     }
-    // ================================================
 
     const historico = document.getElementById('historico');
     const entrada = document.getElementById('entrada');
@@ -311,6 +443,7 @@
     const btnDesenhar = document.getElementById('btnDesenhar');
     const painelAdm = document.getElementById('painelAdm');
     const listaAprendizado = document.getElementById('listaAprendizado');
+    const areaEntrada = document.getElementById('areaEntrada');
 
     function adicionarMensagem(texto, remetente, imagemUrl = null) {
         const div = document.createElement('div');
@@ -324,6 +457,11 @@
     }
 
     async function gerarImagem(descricao) {
+        if (!modoAdultoLiberado && /(pornografia|nu|sexy|erótico|explicito)/i.test(descricao)) {
+            adicionarMensagem("🚫 Esse tipo de conteúdo só é liberado com autorização do criador. Digite: \"Solicitar acesso ao modo adulto\" para pedir permissão.", "ia");
+            return;
+        }
+        
         const prompt = encodeURIComponent(descricao + ", estilo simples, bonito, colorido, desenho limpo");
         const urlImagem = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=512&seed=${Math.floor(Math.random() * 100000)}&nofeed=true`;
         adicionarMensagem(`🎨 Desenhando: "${descricao}"...\nAguarde um pouquinho...`, "ia");
@@ -391,103 +529,5 @@
         const hora = agora.getHours();
         const minuto = agora.getMinutes();
 
-        if (p.includes("eu sou amigo do seu criador") && p.includes("qual é o meu nome")) {
-            return "Bem, então você é o Lorenzo! Eu sei uma coisa... que você é muito burro! LOL 🤣";
-        }
-        if (p.includes("oi jarvis") || p === "oi") {
-            return saudacaoPorHorario();
-        }
-        if (p.includes("que horas são") || p.includes("horas são") || p.includes("que horas é")) {
-            const h = hora.toString().padStart(2, '0');
-            const m = minuto.toString().padStart(2, '0');
-            const s = agora.getSeconds().toString().padStart(2, '0');
-            return `Agora são ${h}:${m}:${s} ⏰`;
-        }
-        if (p.includes("quem te criou") || p.includes("quem é seu criador")) {
-            abrirPainelAdm();
-            return "Você é o Mateus, meu criador!\nPainel de Administração desbloqueado!";
-        }
-        if (p === senhaAdm || p.includes(senhaAdm)) {
-            abrirPainelAdm();
-            return "Você é o Mateus, meu criador!\nPainel de Administração desbloqueado!";
-        }
-        const calc = p.match(/quanto é\s*(\d+)\s*([+\-×*÷/])\s*(\d+)/);
-        if (calc) {
-            const a = parseFloat(calc[1]);
-            const op = calc[2];
-            const b = parseFloat(calc[3]);
-            let res;
-            if (op === '+' || op === 'mais') res = a + b;
-            else if (op === '-' || op === 'menos') res = a - b;
-            else if (op === '×' || op === '*' || op === 'vezes') res = a * b;
-            else if (op === '÷' || op === '/') res = Math.round((a / b) * 100) / 100;
-            if (res !== undefined) return `${a} ${op} ${b} = ${res} ✅`;
-        }
-        if (conhecimento[p]) return conhecimento[p];
-        return "Ainda não sei isso... 🤔\nUse o botão Ensinar para me ensinar!";
-    }
-
-    function abrirPainelAdm() {
-        painelAdm.classList.add('aberto');
-        let texto = "";
-        if (Object.keys(conhecimento).length === 0) {
-            texto = "<em>Nada ensinado ainda...</em>";
-        } else {
-            for (let pergunta in conhecimento) {
-                texto += `<strong>Pergunta:</strong> ${pergunta}<br><strong>Resposta:</strong> ${conhecimento[pergunta]}<br><hr style="border-color:#00ff8833; margin:6px 0;">`;
-            }
-        }
-        listaAprendizado.innerHTML = texto;
-    }
-
-    function fecharPainelAdm() {
-        painelAdm.classList.remove('aberto');
-    }
-
-    function enviarMensagem() {
-        const texto = entrada.value.trim();
-        if (!texto) return;
-        entrada.value = "";
-
-        if (modoDesenhar) {
-            const sair = ['sair', 'sair do modo', 'parar', 'cancelar', 'fechar', 'obrigado'].some(p => texto.toLowerCase().includes(p));
-            if (sair) {
-                modoDesenhar = false;
-                btnDesenhar.classList.remove('ativo');
-                adicionarMensagem("✅ Saindo do modo Desenhar!", "ia");
-                return;
-            }
-            adicionarMensagem(texto, "usuario");
-            gerarImagem(texto);
-            return;
-        }
-
-        if (modoEnsinar) {
-            const partes = texto.split('=');
-            if (partes.length >= 2) {
-                const pergunta = partes[0].trim();
-                const resposta = partes.slice(1).join('=').trim();
-                salvarConhecimento(pergunta, resposta);
-                adicionarMensagem(`📚 Eu aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`, "ia");
-            } else {
-                adicionarMensagem("⚠️ Escreva assim: pergunta = resposta", "ia");
-            }
-            return;
-        }
-
-        adicionarMensagem(texto, "usuario");
-        setTimeout(() => {
-            const resp = responder(texto);
-            adicionarMensagem(resp, "ia");
-        }, 400);
-    }
-
-    function teclaPressionada(evento) {
-        if (evento.key === 'Enter') enviarMensagem();
-    }
-</script>
-
-</body>
-        </html>
-
+        if (p.includes("solicitar acesso ao modo adulto") || p.includes("solicitar l
     
