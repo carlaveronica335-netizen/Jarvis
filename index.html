@@ -3,29 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#00d9ff">
+    <link rel="icon" type="image/png" sizes="192x192" href="https://cdn-icons-png.flaticon.com/512/1005/1005141.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1005/1005141.png">
     <title>JARVIS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         :root {
             --fundo-escuro: #0f172a;
-            --fundo-card: rgba(30, 58, 95, 0.7);
             --cor-primaria: #00d9ff;
-            --cor-destaque: #ff6b00;
-            --cor-texto: #e6f1ff;
             --cor-ia: #1e3a5f;
             --cor-usuario: #006688;
             --cor-botao-ensinar: #ff9900;
             --cor-botao-desenhar: #9933ff;
         }
+        html, body { height: 100%; }
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            color: var(--cor-texto);
-            min-height: 100vh;
+            color: #e6f1ff;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .cabecalho {
-            padding: 15px;
+            padding: 12px 15px;
             text-align: center;
             border-bottom: 2px solid var(--cor-primaria);
             background: rgba(0, 0, 0, 0.3);
@@ -38,7 +44,6 @@
             flex: 1;
             padding: 15px;
             overflow-y: auto;
-            max-height: calc(100vh - 200px);
         }
         .mensagem {
             margin: 10px 0;
@@ -46,6 +51,7 @@
             border-radius: 18px;
             max-width: 85%;
             line-height: 1.5;
+            word-wrap: break-word;
         }
         .mensagem.ia {
             background: var(--cor-ia);
@@ -66,9 +72,10 @@
             width: 100%;
         }
         .entrada-area {
-            padding: 15px;
+            padding: 12px 15px 15px;
             border-top: 2px solid var(--cor-primaria);
             background: rgba(0, 0, 0, 0.3);
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
         }
         .botoes-modos {
             display: flex;
@@ -84,7 +91,7 @@
             font-weight: bold;
             cursor: pointer;
             color: white;
-            transition: transform 0.15s, opacity 0.2s;
+            transition: transform 0.15s;
         }
         .botao-modo:active { transform: scale(0.97); }
         .botao-modo.ensinar { background: var(--cor-botao-ensinar); }
@@ -115,6 +122,7 @@
             color: white;
             font-size: 20px;
             cursor: pointer;
+            flex-shrink: 0;
         }
         .painel-adm {
             background: rgba(20, 80, 40, 0.8);
@@ -158,9 +166,9 @@
 
 <div class="historico" id="historico">
     <div class="mensagem ia">
-        📚 Toque em <strong>Ensinar</strong> pra me dar conhecimento<br>
-        🎨 Toque em <strong>Desenhar</strong> pra eu criar imagens<br>
-        Pergunte as horas, cálculos, ou qualquer coisa que você me ensinou!
+        📚 Toque em <strong>Ensinar</strong> para me dar conhecimento<br>
+        🎨 Toque em <strong>Desenhar</strong> para eu criar imagens<br>
+        Comandos: <em>Oi Jarvis</em> / <em>Que horas são?</em> / <em>Quem te criou?</em> / <em>Quanto é 2+2</em>
     </div>
 </div>
 
@@ -174,13 +182,13 @@
         <button id="btnEnviar">➤</button>
     </div>
     <div class="comandos-dica">
-        Comandos: que horas são? / quem te criou? / quanto é 2+2
+        Comandos: oi Jarvis / que horas são? / quem te criou? / quanto é 2+2
     </div>
 </div>
 
 <div class="painel-adm" id="painelAdm">
     <h3>🔐 Painel de Administração</h3>
-    <p>Você é o criador! Aqui está tudo que eu aprendi:</p>
+    <p>Aqui está tudo o que eu aprendi:</p>
     <div class="info-aprendizado" id="listaAprendizado">
         <em>Nada ensinado ainda...</em>
     </div>
@@ -208,7 +216,6 @@
     let modoEnsinar = false;
     let modoDesenhar = false;
     let senhaAdm = "Wubba Lubba Dub Dub";
-    let criador = "Mateus";
 
     refConhecimento.on('value', (snapshot) => {
         conhecimento = snapshot.val() || {};
@@ -241,16 +248,13 @@
     async function gerarImagem(descricao) {
         const prompt = encodeURIComponent(descricao + ", estilo simples, bonito, colorido, desenho limpo");
         const urlImagem = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=512&seed=${Math.floor(Math.random() * 100000)}&nofeed=true`;
-        
-        adicionarMensagem(`🎨 Desenhando: "${descricao}"...\n⌘ Aguarde um pouquinho...`, "ia");
-        
+        adicionarMensagem(`🎨 Desenhando: "${descricao}"...\nAguarde um pouquinho...`, "ia");
         setTimeout(() => {
             const div = document.createElement('div');
             div.className = 'mensagem ia';
             div.innerHTML = `
-                <div>🎨 Pronto! ✅</div>
+                <div>🎨 Pronto!</div>
                 <img src="${urlImagem}" alt="${descricao}" class="imagem-resposta" onerror="this.parentElement.innerHTML += '<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>'">
-                <div style="font-size:12px;color:#88aacc;margin-top:5px;">Desenho: "${descricao}"</div>
             `;
             historico.appendChild(div);
             historico.scrollTop = historico.scrollHeight;
@@ -263,7 +267,7 @@
         btnDesenhar.classList.remove('ativo');
         if (modoEnsinar) {
             btnEnsinar.classList.add('ativo');
-            adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta ou assunto.", "ia");
+            adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta e a resposta.", "ia");
         } else {
             btnEnsinar.classList.remove('ativo');
             adicionarMensagem("❌ Modo Ensinar desativado!", "ia");
@@ -283,27 +287,71 @@
         }
     });
 
+    function saudacaoPorHorario() {
+        const agora = new Date();
+        const hora = agora.getHours();
+        const minuto = agora.getMinutes();
+
+        // 1h até 5h59 → Olá, Batman!
+        if (hora >= 1 && hora < 6) {
+            return "Olá, Batman!";
+        }
+
+        // Exatamente 6h10 → Olá, estudante! + frase
+        if (hora === 6 && minuto === 10) {
+            return "Olá, estudante! Que pena que eu não tenho que ir para a escola, kkkk!";
+        }
+
+        // 6h até 11h59 → Bom dia!
+        if (hora >= 6 && hora < 12) {
+            return "Bom dia!";
+        }
+
+        // 12h até 17h59 → Boa tarde!
+        if (hora >= 12 && hora < 18) {
+            return "Boa tarde!";
+        }
+
+        // 18h até 23h59 → Boa noite!
+        return "Boa noite!";
+    }
+
     function responder(pergunta) {
         const p = pergunta.toLowerCase().trim();
+        const agora = new Date();
+        const hora = agora.getHours();
+        const minuto = agora.getMinutes();
 
-        if (p.includes("quem te criou") || p.includes("quem te criou?") || p.includes("quem é seu criador")) {
-            abrirPainelAdm();
-            return `Você é o meu criador! 🤖❤️\n🔓 Painel de Administração desbloqueado!`;
+        // === ZOEIRA COM O LORENZO ===
+        if (p.includes("eu sou amigo do seu criador") && p.includes("qual é o meu nome")) {
+            return "Bem, então você é o Lorenzo! Eu sei uma coisa... que você é muito burro! LOL 🤣";
         }
 
-        if (p === senhaAdm || p.includes(senhaAdm)) {
-            abrirPainelAdm();
-            return `🔓 Painel de Administração desbloqueado!\nBem-vindo, criador! 🤖`;
+        // === SAUDAÇÃO POR HORÁRIO ===
+        if (p.includes("oi jarvis") || p === "oi") {
+            return saudacaoPorHorario();
         }
 
+        // === QUE HORAS SÃO ===
         if (p.includes("que horas são") || p.includes("horas são") || p.includes("que horas é")) {
-            const agora = new Date();
-            const h = agora.getHours().toString().padStart(2, '0');
-            const m = agora.getMinutes().toString().padStart(2, '0');
+            const h = hora.toString().padStart(2, '0');
+            const m = minuto.toString().padStart(2, '0');
             const s = agora.getSeconds().toString().padStart(2, '0');
             return `Agora são ${h}:${m}:${s} ⏰`;
         }
 
+        // === QUEM TE CRIOU / PAINEL ADM ===
+        if (p.includes("quem te criou") || p.includes("quem é seu criador")) {
+            abrirPainelAdm();
+            return "Você é o meu criador!\nPainel de Administração desbloqueado!";
+        }
+
+        if (p === senhaAdm || p.includes(senhaAdm)) {
+            abrirPainelAdm();
+            return "Painel de Administração desbloqueado!\nBem-vindo!";
+        }
+
+        // === CÁLCULOS ===
         const calc = p.match(/quanto é\s*(\d+)\s*([+\-×*÷/])\s*(\d+)/);
         if (calc) {
             const a = parseFloat(calc[1]);
@@ -317,9 +365,10 @@
             if (res !== undefined) return `${a} ${op} ${b} = ${res} ✅`;
         }
 
+        // === RESPOSTAS SALVAS NO FIREBASE ===
         if (conhecimento[p]) return conhecimento[p];
 
-        return "Ainda não sei essa... 🤔\nUse o botão Ensinar pra me ensinar!";
+        return "Ainda não sei isso... 🤔\nUse o botão Ensinar para me ensinar!";
     }
 
     function abrirPainelAdm() {
@@ -362,27 +411,5 @@
             if (partes.length >= 2) {
                 const pergunta = partes[0].trim();
                 const resposta = partes.slice(1).join('=').trim();
-                salvarConhecimento(pergunta, resposta);
-                adicionarMensagem(`📚 Eu aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`, "ia");
-            } else {
-                adicionarMensagem("⚠️ Escreva assim: pergunta = resposta\nExemplo: Qual sua cor favorita? = Eu gosto de azul!", "ia");
-            }
-            return;
-        }
 
-        adicionarMensagem(texto, "usuario");
-        setTimeout(() => {
-            const resp = responder(texto);
-            adicionarMensagem(resp, "ia");
-        }, 400);
-    }
-
-    btnEnviar.addEventListener('click', enviarMensagem);
-    entrada.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') enviarMensagem();
-    });
-</script>
-
-</body>
-</html>
-
+        
