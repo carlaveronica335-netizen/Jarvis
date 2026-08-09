@@ -20,6 +20,9 @@
             --cor-usuario: #006688;
             --cor-botao-ensinar: #ff9900;
             --cor-botao-desenhar: #9933ff;
+            --cor-perigo: #ff3333;
+            --cor-aviso: #ffcc00;
+            --cor-mensagem: #00cc66;
         }
         html, body { height: 100%; }
         body {
@@ -64,6 +67,18 @@
             border-right: 4px solid var(--cor-primaria);
             border-top-right-radius: 4px;
             margin-left: auto;
+        }
+        .mensagem.aviso-todos {
+            background: rgba(255, 204, 0, 0.2);
+            border: 2px solid #ffcc00;
+            max-width: 100%;
+            text-align: center;
+            font-weight: bold;
+            animation: piscar 1s infinite alternate;
+        }
+        @keyframes piscar {
+            from { box-shadow: 0 0 5px #ffcc00; }
+            to { box-shadow: 0 0 20px #ffcc00; }
         }
         .imagem-resposta {
             margin-top: 10px;
@@ -133,19 +148,35 @@
             display: none;
         }
         .painel-adm.aberto { display: block; }
-        .btn-fechar {
-            background: #ff4444;
+        .botoes-adm {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .botao-adm {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 8px;
             border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
             color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 10px;
+        }
+        .botao-apagar { background: var(--cor-perigo); }
+        .botao-limpar { background: var(--cor-aviso); color: #000; }
+        .botao-mensagem { background: var(--cor-mensagem); }
+        .botao-fechar {
+            background: #444;
+            width: 100%;
+            margin-top: 8px;
         }
         .info-aprendizado {
             background: rgba(0, 0, 0, 0.3);
             padding: 10px;
             border-radius: 8px;
-            margin-top: 8px;
+            margin-top: 10px;
             max-height: 200px;
             overflow-y: auto;
             font-size: 13px;
@@ -177,7 +208,7 @@
         <button class="botao-modo desenhar" id="btnDesenhar" onclick="clicarDesenhar()">🎨 Desenhar</button>
     </div>
     <div class="caixa-envio">
-        <input type="text" id="entrada" placeholder="Escreva sua mensagem..." onkeydown="teclaPressionada(event)">
+        <input type="text" id="entrada" placeholder="Escreva sua mensagem..." onkeydown="teclaPressionada(evento)">
         <button id="btnEnviar" onclick="enviarMensagem()">➤</button>
     </div>
     <div class="comandos-dica">
@@ -187,11 +218,18 @@
 
 <div class="painel-adm" id="painelAdm">
     <h3>🔐 Painel de Administração</h3>
-    <p>Aqui está tudo o que eu aprendi:</p>
+    
+    <div class="botoes-adm">
+        <button class="botao-adm botao-apagar" onclick="apagarTudoAprendido()">🗑️ Apagar o que ela aprendeu</button>
+        <button class="botao-adm botao-limpar" onclick="limparConversa()">🧹 Limpar Conversa</button>
+        <button class="botao-adm botao-mensagem" onclick="mandarMensagemParaTodos()">📢 Mandar mensagem para todos</button>
+    </div>
+
     <div class="info-aprendizado" id="listaAprendizado">
         <em>Nada ensinado ainda...</em>
     </div>
-    <button class="btn-fechar" id="btnFecharAdm" onclick="fecharPainelAdm()">Fechar</button>
+
+    <button class="botao-adm botao-fechar" onclick="fecharPainelAdm()">❌ Fechar</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
@@ -210,19 +248,62 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const refConhecimento = db.ref('conhecimento');
+    const refAvisoGlobal = db.ref('avisoGlobal');
 
     let conhecimento = {};
     let modoEnsinar = false;
     let modoDesenhar = false;
     let senhaAdm = "Wubba Lubba Dub Dub";
+    let ultimoAvisoRecebido = "";
 
     refConhecimento.on('value', (snapshot) => {
         conhecimento = snapshot.val() || {};
     });
 
+    // Recebe mensagem enviada para todos em TEMPO REAL
+    refAvisoGlobal.on('value', (snapshot) => {
+        const aviso = snapshot.val();
+        if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
+            ultimoAvisoRecebido = aviso.texto;
+            mostrarAvisoGlobal(aviso.texto);
+        }
+    });
+
     function salvarConhecimento(pergunta, resposta) {
         refConhecimento.child(pergunta.toLowerCase()).set(resposta);
     }
+
+    function mostrarAvisoGlobal(texto) {
+        const div = document.createElement('div');
+        div.className = 'mensagem aviso-todos';
+        div.innerHTML = `📢 MENSAGEM DO CRIADOR:<br>${texto}`;
+        historico.appendChild(div);
+        historico.scrollTop = historico.scrollHeight;
+    }
+
+    // ========== FUNÇÕES DOS BOTÕES DO ADM ==========
+    function apagarTudoAprendido() {
+        if (confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) {
+            refConhecimento.remove();
+            adicionarMensagem("🗑️ Todo o conhecimento foi apagado do servidor!", "ia");
+            listaAprendizado.innerHTML = "<em>Nada ensinado ainda...</em>";
+        }
+    }
+
+    function limparConversa() {
+        historico.innerHTML = "";
+        adicionarMensagem("🧹 Conversa limpa!", "ia");
+    }
+
+    function mandarMensagemParaTodos() {
+        const mensagem = "Lorenzo é burro.";
+        refAvisoGlobal.set({
+            texto: mensagem,
+            data: new Date().toISOString()
+        });
+        adicionarMensagem(`📢 Mensagem enviada para todos:\n"${mensagem}"`, "ia");
+    }
+    // ================================================
 
     const historico = document.getElementById('historico');
     const entrada = document.getElementById('entrada');
@@ -324,11 +405,11 @@
         }
         if (p.includes("quem te criou") || p.includes("quem é seu criador")) {
             abrirPainelAdm();
-            return "Você é o meu criador!\nPainel de Administração desbloqueado!";
+            return "Você é o Mateus, meu criador!\nPainel de Administração desbloqueado!";
         }
         if (p === senhaAdm || p.includes(senhaAdm)) {
             abrirPainelAdm();
-            return "Painel de Administração desbloqueado!\nBem-vindo!";
+            return "Você é o Mateus, meu criador!\nPainel de Administração desbloqueado!";
         }
         const calc = p.match(/quanto é\s*(\d+)\s*([+\-×*÷/])\s*(\d+)/);
         if (calc) {
@@ -407,6 +488,6 @@
 </script>
 
 </body>
-    </html>
+        </html>
 
     
