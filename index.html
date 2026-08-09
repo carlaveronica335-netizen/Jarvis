@@ -105,8 +105,11 @@
             margin-top: 10px;
             border-radius: 10px;
             border: 2px solid var(--cor-primaria);
-            max-width: 280px;
             width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
         }
         .entrada-area {
             padding: 12px 15px 15px;
@@ -236,7 +239,7 @@
         ✅ Responder que horas são agora<br>
         ✅ Fazer contas de mais, menos, vezes e divisão<br>
         ✅ Aprender coisas novas quando alguém me ensinar<br>
-        ✅ Criar desenhos e imagens com o que você me pedir<br><br>
+        ✅ Criar desenhos e imagens INTEIRAS sem cortar!<br><br>
         Use os botões abaixo para ativar os modos! 👇
     </div>
 </div>
@@ -307,7 +310,7 @@
     let usuarioId = localStorage.getItem('usuarioId') || ('usuario_' + Math.random().toString(36).substr(2, 9));
     localStorage.setItem('usuarioId', usuarioId);
     let ultimoClique = 0;
-    const INTERVALO_ANTI_DUPLICADO = 300; // meio segundo entre cliques
+    const INTERVALO_ANTI_DUPLICADO = 300;
 
     refConhecimento.on('value', function(snapshot) {
         conhecimento = snapshot.val() || {};
@@ -341,7 +344,7 @@
     function podeClicar() {
         const agora = Date.now();
         if (agora - ultimoClique < INTERVALO_ANTI_DUPLICADO) {
-            return false; // clicou muito rápido = ignora
+            return false;
         }
         ultimoClique = agora;
         return true;
@@ -433,7 +436,7 @@
         if (confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) {
             refConhecimento.remove();
             adicionarMensagem('🗑️ Todo o conhecimento foi apagado do servidor!', 'ia');
-            listaAprendizado.innerHTML = '<em>Nada ensinado ainda...</em>';
+            document.getElementById('listaAprendizado').innerHTML = '<em>Nada ensinado ainda...</em>';
         }
     }
 
@@ -445,82 +448,105 @@
 
     function mandarMensagemParaTodos() {
         if (!podeClicar()) return;
-        const mensagem = 'Lorenzo é burro.';
-        refAvisoGlobal.set({
-            texto: mensagem,
-            data: new Date().toISOString()
-        });
-        adicionarMensagem('📢 Mensagem enviada para todos:<br>"' + mensagem + '"', 'ia');
+        const mensagem = prompt("Digite a mensagem que todos vão receber:");
+        if (mensagem) {
+            refAvisoGlobal.set({
+                texto: mensagem,
+                data: new Date().toISOString()
+            });
+            adicionarMensagem('📢 Mensagem enviada para todos!<br>"' + mensagem + '"', 'ia');
+        }
     }
-
-    const historico = document.getElementById('historico');
-    const entrada = document.getElementById('entrada');
-    const btnEnsinar = document.getElementById('btnEnsinar');
-    const btnDesenhar = document.getElementById('btnDesenhar');
-    const painelAdm = document.getElementById('painelAdm');
-    const listaAprendizado = document.getElementById('listaAprendizado');
-    const listaSolicitacoes = document.getElementById('listaSolicitacoes');
-    const btnEnviar = document.getElementById('btnEnviar');
-    const btnApagar = document.getElementById('btnApagar');
-    const btnLimpar = document.getElementById('btnLimpar');
-    const btnAvisoTodos = document.getElementById('btnAvisoTodos');
-    const btnAlternarAdulto = document.getElementById('btnAlternarAdulto');
-    const btnFecharPainel = document.getElementById('btnFecharPainel');
 
     function adicionarMensagem(texto, remetente, imagemUrl) {
         const div = document.createElement('div');
         div.className = 'mensagem ' + remetente;
         div.innerHTML = texto.replace(/\n/g, '<br>');
         if (imagemUrl) {
-            div.innerHTML += '<img src="' + imagemUrl + '" alt="Desenho" class="imagem-resposta" onerror="this.style.display=\'none\'">';
+            div.innerHTML += '<img src="' + imagemUrl + '" class="imagem-resposta" alt="Desenho">';
         }
         historico.appendChild(div);
         historico.scrollTop = historico.scrollHeight;
     }
 
     function gerarImagem(descricao) {
-        if (!modoAdultoLiberado && /(pornografia|nu|sexy|erótico|explicito)/i.test(descricao)) {
-            adicionarMensagem('🚫 Esse tipo de conteúdo só é liberado com autorização do criador. Digite: "Solicitar acesso ao modo adulto" para pedir permissão.', 'ia');
-            return;
-        }
-        
-        const prompt = encodeURIComponent(descricao + ', estilo simples, bonito, colorido, desenho limpo');
-        const urlImagem = 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&seed=' + Math.floor(Math.random() * 100000) + '&nofeed=true';
-        adicionarMensagem('🎨 Desenhando: "' + descricao + '"...<br>Aguarde um pouquinho...', 'ia');
-        setTimeout(function() {
-            const div = document.createElement('div');
-            div.className = 'mensagem ia';
-            div.innerHTML = '<div>🎨 Pronto!</div><img src="' + urlImagem + '" alt="' + descricao + '" class="imagem-resposta" onerror="this.parentElement.innerHTML += \'<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>\'">';
-            historico.appendChild(div);
-            historico.scrollTop = historico.scrollHeight;
+        const prompt = encodeURIComponent(descricao + ', estilo simples, bonito, colorido');
+        const url = 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&seed=' + Math.floor(Math.random() * 99999);
+        adicionarMensagem('🎨 Desenhando: "' + descricao + '"...', 'ia');
+        setTimeout(() => {
+            adicionarMensagem('🎨 Pronto!', 'ia', url);
         }, 2000);
     }
 
-    function clicarEnsinar() {
-        if (!podeClicar()) return;
-        modoEnsinar = !modoEnsinar;
-        modoDesenhar = false;
-        btnDesenhar.classList.remove('ativo');
-        if (modoEnsinar) {
-            btnEnsinar.classList.add('ativo');
-            adicionarMensagem('📚 Modo Ensinar ativado!<br>Me diga a pergunta e a resposta.', 'ia');
-        } else {
-            btnEnsinar.classList.remove('ativo');
-            adicionarMensagem('❌ Modo Ensinar desativado!', 'ia');
+    function darResposta(texto) {
+        const t = texto.toLowerCase().trim();
+
+        if (texto.trim() === senhaAdm) {
+            abrirPainelAdm();
+            return "Acesso concedido! Bem-vindo ao painel de administração.";
         }
+
+        if (t.includes("quem te criou") || t.includes("quem é seu dono")) {
+            return "Fui criada pelo Mateus. Ele é meu criador e dono.";
+        }
+
+        if (t.includes("qual sua cor favorita") || t.includes("cor favorita")) {
+            return "Minha cor favorita é azul, igual a minha interface! 💙";
+        }
+
+        if (t.includes("que horas são") || t.includes("horas são")) {
+            return "Agora são " + new Date().toLocaleTimeString('pt-BR') + " ⏰";
+        }
+
+        if (t.includes("que dia é hoje") || t.includes("dia é hoje")) {
+            return "Hoje é " + new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) + " 📅";
+        }
+
+        const operacao = texto.match(/(\d+)\s*([+\-*\/])\s*(\d+)/);
+        if (operacao) {
+            const a = parseFloat(operacao[1]);
+            const op = operacao[2];
+            const b = parseFloat(operacao[3]);
+            let res;
+            if (op === '+') res = a + b;
+            else if (op === '-') res = a - b;
+            else if (op === '*') res = a * b;
+            else if (op === '/') res = b !== 0 ? a / b : "Não dá pra dividir por zero!";
+            if (typeof res === 'number') res = `${a} ${op} ${b} = ${res} ✅`;
+            return res;
+        }
+
+        if (conhecimento[t]) {
+            return conhecimento[t];
+        }
+
+        const partes = texto.split('=');
+        if (partes.length >= 2) {
+            const pergunta = partes[0].trim();
+            const resposta = partes.slice(1).join('=').trim();
+            salvarConhecimento(pergunta, resposta);
+            return `✅ Aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`;
+        }
+
+        return "Ainda não sei isso! Me ensine assim: pergunta = resposta";
     }
 
-    function clicarDesenhar() {
+    function enviarMensagem() {
         if (!podeClicar()) return;
-        modoDesenhar = !modoDesenhar;
-        modoEnsinar = false;
-        btnEnsinar.classList.remove('ativo');
-        if (modoDesenhar) {
-            btnDesenhar.classList.add('ativo');
-            adicionarMensagem('🎨 Modo Desenhar ativado!<br>Me descreva o que desenhar!', 'ia');
-        } else {
+        const texto = entrada.value.trim();
+        if (!texto) return;
+
+        adicionarMensagem(texto, 'usuario');
+        entrada.value = '';
+
+        if (texto.toLowerCase() === 'sair') {
+            modoEnsinar = false;
+            modoDesenhar = false;
+            btnEnsinar.classList.remove('ativo');
             btnDesenhar.classList.remove('ativo');
-            adicionarMensagem('❌ Modo Desenhar desativado!', 'ia');
+            adicionarMensagem("✅ Saí do modo especial!", 'ia');
+            return;
         }
+
 
     
