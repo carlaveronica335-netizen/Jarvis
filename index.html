@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS 2.2</title>
+    <title>JARVIS 2.3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body {
@@ -102,7 +102,7 @@
 <body>
 
     <div class="cabecalho">
-        <div class="titulo">🤖 JARVIS 2.2</div>
+        <div class="titulo">🤖 JARVIS 2.3</div>
         <div class="status" id="status">Conectado ✅</div>
     </div>
 
@@ -142,7 +142,7 @@
 
     <div class="chat" id="chat">
         <div class="mensagem jarvis">
-            Olá! Eu sou o JARVIS 2.2! 🤖<br><br>
+            Olá! Eu sou o JARVIS 2.3! 🤖<br><br>
             📚 Toque em Ensinar pra me dar conhecimento<br>
             🎨 Toque em Desenhar pra eu criar imagens<br>
             Pergunte as horas, cálculos, ou qualquer coisa que você me ensinou!
@@ -158,12 +158,31 @@
             <input type="text" id="mensagem" placeholder="Escreva sua mensagem...">
             <button id="enviar">➤</button>
         </div>
-        <div class="comandos">Comandos: que horas são? / quem te criou? / digite a senha secreta</div>
+        <div class="comandos">Comandos: que horas são? / quem te criou? / quanto é 2+2</div>
     </div>
 
 <script>
 const senhaCorreta = "Wubba Lubba Dub Dub";
 const CRIADOR = "Você é o meu criador! 🤖❤️";
+
+// RESPOSTAS BÁSICAS JÁ PRONTAS
+const respostasBasicas = {
+    "olá": "Olá! Tudo bem? Como posso te ajudar? 🤖",
+    "oi": "Oi! Tudo bem contigo? 😊",
+    "e aí": "E aí! Tudo beleza? 🤖",
+    "bom dia": "Bom dia! Que seu dia seja ótimo! ☀️",
+    "boa tarde": "Boa tarde! Tudo bem? 🌤️",
+    "boa noite": "Boa noite! Descanse bem! 🌙",
+    "tudo bem": "Tudo ótimo! E com você? 🤖",
+    "como vai": "Vou muito bem, obrigado por perguntar! 😊",
+    "quem é você": "Eu sou o JARVIS 2.3, sua inteligência artificial! 🤖 Criada por você!",
+    "obrigado": "De nada! Estou sempre à disposição! ✅",
+    "valeu": "De nada! Quando precisar, é só chamar! 🤖",
+    "quanto é 2+2": "2 + 2 = 4 ✅",
+    "2+2": "2 + 2 = 4 ✅",
+    "quanto é 5+3": "5 + 3 = 8 ✅",
+    "quanto é 10-4": "10 - 4 = 6 ✅"
+};
 
 const btnEnsinar = document.getElementById("btnEnsinar");
 const btnDesenhar = document.getElementById("btnDesenhar");
@@ -296,12 +315,18 @@ function responder(texto){
     setTimeout(()=>{
         removerDigitando();
         let resp = "";
-        const tx = texto.toLowerCase();
+        const tx = texto.toLowerCase().trim();
 
+        // 3 FORMAS DE ABRIR O PAINEL
         if(/quem te criou|quem é seu criador|seu criador|quem te fez/i.test(tx) || tx === senhaCorreta.toLowerCase()){
             abrirPainel();
             resp = CRIADOR + "\n\n🔓 Painel de Administração desbloqueado!";
         }
+        // RESPOSTAS BÁSICAS PRONTAS
+        else if(respostasBasicas[tx]){
+            resp = respostasBasicas[tx];
+        }
+        // MODO ENSINAR
         else if(modo === "ensinar"){
             if(ensinarEtapa === 0){
                 perguntaGuardada = texto;
@@ -314,9 +339,11 @@ function responder(texto){
                 resp = `Aprendi com sucesso! 🧠✅`;
             }
         }
+        // MODO DESENHAR
         else if(modo === "desenhar"){
             resp = `🎨 Desenhando: "${texto}"...\n\nPronto! ✅`;
         }
+        // COMANDOS ESPECIAIS
         else if(/que horas são/i.test(tx)){
             const agora = new Date();
             resp = `Agora são ${agora.toLocaleTimeString('pt-BR')} ⏰`;
@@ -327,11 +354,13 @@ function responder(texto){
                 catch { resp = "Não consegui calcular 😅"; }
             } else resp = "Exemplo: quanto é 5+3";
         }
+        // CONHECIMENTO SALVO
         else if(conhecimento[tx]){
             resp = conhecimento[tx];
         }
+        // NÃO SABE
         else {
-            resp = `Ainda não aprendi isso! 🤔\nToque em 📚 Ensinar pra me ensinar!`;
+            resp = `Ainda não aprendi isso! 🤔\nToque em 📚 Ensinar pra me ensinar a responder sobre: "${texto}"!`;
         }
 
         adicionarMensagem(resp, "jarvis");
@@ -385,4 +414,6 @@ mensagemEl.addEventListener("keydown", e=>{ if(e.key === "Enter") enviar(); });
 atualizarNumeros();
 </script>
 </body>
-</html>
+    </html>
+
+    
