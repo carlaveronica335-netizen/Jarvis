@@ -12,7 +12,21 @@
     <title>JARVIS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        button { cursor: pointer; touch-action: manipulation; }
+        button { 
+            cursor: pointer; 
+            touch-action: manipulation; 
+            border: 2px solid transparent;
+            outline: 3px solid transparent;
+            transition: all 0.15s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        button:focus {
+            outline: 3px solid #00d9ff;
+            outline-offset: 2px;
+            border-color: #00d9ff;
+        }
+        button:active { transform: scale(0.95); }
         :root {
             --fundo-escuro: #0f172a;
             --cor-primaria: #00d9ff;
@@ -54,6 +68,7 @@
             flex: 1;
             padding: 15px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .mensagem {
             margin: 10px 0;
@@ -82,16 +97,6 @@
             font-weight: bold;
             animation: piscar 1s infinite alternate;
         }
-        .mensagem.solicitacao {
-            background: rgba(255, 68, 102, 0.15);
-            border: 2px dashed var(--cor-adulto);
-            max-width: 100%;
-        }
-        .mensagem.aviso-alerta {
-            background: rgba(255, 68, 102, 0.2);
-            border: 2px solid var(--cor-adulto);
-            max-width: 100%;
-        }
         @keyframes piscar {
             from { box-shadow: 0 0 5px #ffcc00; }
             to { box-shadow: 0 0 20px #ffcc00; }
@@ -109,10 +114,6 @@
             background: rgba(0, 0, 0, 0.3);
             padding-bottom: calc(15px + env(safe-area-inset-bottom));
         }
-        .entrada-area.bloqueada {
-            opacity: 0.5;
-            pointer-events: none;
-        }
         .botoes-modos {
             display: flex;
             gap: 10px;
@@ -120,16 +121,15 @@
         }
         .botao-modo {
             flex: 1;
-            padding: 12px 10px;
+            padding: 14px 10px;
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: bold;
             color: white;
             background: gray;
-            transition: transform 0.1s;
+            min-height: 50px;
         }
-        .botao-modo:active { transform: scale(0.95); }
         .botao-modo.ensinar { background: var(--cor-botao-ensinar); }
         .botao-modo.ensinar.ativo { box-shadow: 0 0 12px var(--cor-botao-ensinar); }
         .botao-modo.desenhar { background: var(--cor-botao-desenhar); }
@@ -141,13 +141,14 @@
         }
         #entrada {
             flex: 1;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border-radius: 25px;
             border: 2px solid var(--cor-primaria);
             background: rgba(30, 58, 95, 0.6);
             color: white;
             font-size: 16px;
             outline: none;
+            min-height: 50px;
         }
         #btnEnviar {
             width: 50px;
@@ -177,12 +178,13 @@
         .botao-adm {
             flex: 1;
             min-width: 100px;
-            padding: 10px 8px;
+            padding: 12px 8px;
             border: none;
             border-radius: 8px;
             font-size: 13px;
             font-weight: bold;
             color: white;
+            min-height: 48px;
         }
         .botao-apagar { background: var(--cor-perigo); }
         .botao-limpar { background: var(--cor-aviso); color: #000; }
@@ -217,8 +219,8 @@
             margin-top: 8px;
             line-height: 1.6;
         }
-        .botao-aprovar { background: #00cc66; border: none; padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
-        .botao-negar { background: #ff3333; border: none; padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
+        .botao-aprovar { background: #00cc66; border: none; padding: 6px 12px; border-radius: 4px; color: white; font-size: 13px; min-height: 36px; }
+        .botao-negar { background: #ff3333; border: none; padding: 6px 12px; border-radius: 4px; color: white; font-size: 13px; min-height: 36px; }
     </style>
 </head>
 <body>
@@ -241,12 +243,12 @@
 
 <div class="entrada-area" id="areaEntrada">
     <div class="botoes-modos">
-        <button class="botao-modo ensinar" id="btnEnsinar" onclick="clicarEnsinar()">📚 Ensinar</button>
-        <button class="botao-modo desenhar" id="btnDesenhar" onclick="clicarDesenhar()">🎨 Desenhar</button>
+        <button class="botao-modo ensinar" id="btnEnsinar">📚 Ensinar</button>
+        <button class="botao-modo desenhar" id="btnDesenhar">🎨 Desenhar</button>
     </div>
     <div class="caixa-envio">
-        <input type="text" id="entrada" placeholder="Escreva sua mensagem..." onkeydown="teclaPressionada(evento)">
-        <button id="btnEnviar" onclick="enviarMensagem()">➤</button>
+        <input type="text" id="entrada" placeholder="Escreva sua mensagem...">
+        <button id="btnEnviar">➤</button>
     </div>
     <div class="comandos-dica">
         Exemplos: "Oi Jarvis" / "Que horas são?" / "Quanto é 2 + 2?"
@@ -257,10 +259,10 @@
     <h3>🔐 Painel de Administração</h3>
     
     <div class="botoes-adm">
-        <button class="botao-adm botao-apagar" onclick="apagarTudoAprendido()">🗑️ Apagar conhecimento</button>
-        <button class="botao-adm botao-limpar" onclick="limparConversa()">🧹 Limpar Conversa</button>
-        <button class="botao-adm botao-mensagem" onclick="mandarMensagemParaTodos()">📢 Aviso para todos</button>
-        <button class="botao-adm botao-adulto" onclick="alternarModoAdulto()">🔞 Alternar Modo Adulto</button>
+        <button class="botao-adm botao-apagar" id="btnApagar">🗑️ Apagar conhecimento</button>
+        <button class="botao-adm botao-limpar" id="btnLimpar">🧹 Limpar Conversa</button>
+        <button class="botao-adm botao-mensagem" id="btnAvisoTodos">📢 Aviso para todos</button>
+        <button class="botao-adm botao-adulto" id="btnAlternarAdulto">🔞 Alternar Modo Adulto</button>
     </div>
 
     <h4 style="margin-top:12px;">📋 Solicitações de liberação:</h4>
@@ -273,7 +275,7 @@
         <em>Nada ensinado ainda...</em>
     </div>
 
-    <button class="botao-adm botao-fechar" onclick="fecharPainelAdm()">❌ Fechar</button>
+    <button class="botao-adm botao-fechar" id="btnFecharPainel">❌ Fechar</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
@@ -334,10 +336,6 @@
         }
     });
 
-    function verificarLiberacao() {
-        return localStorage.getItem('liberadoAdulto') === 'sim';
-    }
-
     function atualizarIndicadorModoAdulto() {
         document.getElementById('indicadorModoAdulto').style.display = modoAdultoLiberado ? 'inline' : 'none';
     }
@@ -384,8 +382,8 @@
             item.innerHTML = `
                 <div><strong>${dados.nome || 'Anônimo'}</strong><br><small>${new Date(dados.data).toLocaleString('pt-BR')}</small></div>
                 <div>
-                    <button class="botao-aprovar" onclick="aprovarUsuario('${id}')">✅ Aprovar +18</button>
-                    <button class="botao-negar" onclick="negarUsuario('${id}')">❌ Negar</button>
+                    <button class="botao-aprovar" data-id="${id}">✅ Aprovar +18</button>
+                    <button class="botao-negar" data-id="${id}">❌ Negar</button>
                 </div>
             `;
             lista.appendChild(item);
@@ -443,7 +441,13 @@
     const btnDesenhar = document.getElementById('btnDesenhar');
     const painelAdm = document.getElementById('painelAdm');
     const listaAprendizado = document.getElementById('listaAprendizado');
-    const areaEntrada = document.getElementById('areaEntrada');
+    const listaSolicitacoes = document.getElementById('listaSolicitacoes');
+    const btnEnviar = document.getElementById('btnEnviar');
+    const btnApagar = document.getElementById('btnApagar');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnAvisoTodos = document.getElementById('btnAvisoTodos');
+    const btnAlternarAdulto = document.getElementById('btnAlternarAdulto');
+    const btnFecharPainel = document.getElementById('btnFecharPainel');
 
     function adicionarMensagem(texto, remetente, imagemUrl = null) {
         const div = document.createElement('div');
@@ -463,15 +467,12 @@
         }
         
         const prompt = encodeURIComponent(descricao + ", estilo simples, bonito, colorido, desenho limpo");
-        const urlImagem = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=512&seed=${Math.floor(Math.random() * 100000)}&nofeed=true`;
-        adicionarMensagem(`🎨 Desenhando: "${descricao}"...\nAguarde um pouquinho...`, "ia");
-        setTimeout(() => {
+        const urlImagem = "https://image.pollinations.ai/prompt/" + prompt + "?width=512&height=512&seed=" + Math.floor(Math.random() * 100000) + "&nofeed=true";
+        adicionarMensagem("🎨 Desenhando: \"" + descricao + "\"...\nAguarde um pouquinho...", "ia");
+        setTimeout(function() {
             const div = document.createElement('div');
             div.className = 'mensagem ia';
-            div.innerHTML = `
-                <div>🎨 Pronto!</div>
-                <img src="${urlImagem}" alt="${descricao}" class="imagem-resposta" onerror="this.parentElement.innerHTML += '<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>'">
-            `;
+            div.innerHTML = "<div>🎨 Pronto!</div><img src='" + urlImagem + "' alt='" + descricao + "' class='imagem-resposta' onerror='this.parentElement.innerHTML += \"<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>\"'>";
             historico.appendChild(div);
             historico.scrollTop = historico.scrollHeight;
         }, 2000);
@@ -527,7 +528,5 @@
         const p = pergunta.toLowerCase().trim();
         const agora = new Date();
         const hora = agora.getHours();
-        const minuto = agora.getMinutes();
 
-        if (p.includes("solicitar acesso ao modo adulto") || p.includes("solicitar l
     
