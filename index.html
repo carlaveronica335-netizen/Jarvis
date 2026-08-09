@@ -3,417 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS 2.3</title>
+    <title>JARVIS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        :root {
+            --fundo-escuro: #0f172a;
+            --fundo-card: rgba(30, 58, 95, 0.7);
+            --cor-primaria: #00d9ff;
+            --cor-destaque: #ff6b00;
+            --cor-texto: #e6f1ff;
+            --cor-ia: #1e3a5f;
+            --cor-usuario: #006688;
+            --cor-botao-ensinar: #ff9900;
+            --cor-botao-desenhar: #9933ff;
+        }
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh; display: flex; flex-direction: column;
-            color: #e2e8f0; padding: 12px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: var(--cor-texto);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .cabecalho {
-            border: 3px solid #00d9ff; border-radius: 16px; padding: 14px;
-            background: rgba(0, 217, 255, 0.08); box-shadow: 0 0 15px #00d9ff55; margin-bottom: 12px;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid var(--cor-primaria);
+            background: rgba(0, 0, 0, 0.3);
         }
-        .titulo { font-size: 22px; font-weight: bold; color: #00d9ff; display: flex; align-items: center; gap: 8px; }
-        .status { font-size: 14px; margin-top: 4px; }
-        .conectado { color: #00ff88; }
-        .desconectado { color: #ff4444; }
-
-        .painel-criador {
-            background: rgba(0, 0, 0, 0.5); border-radius: 12px; padding: 16px; margin: 12px 0;
-            border: 2px solid #ffd700; box-shadow: 0 0 15px #ffd70044;
-            display: none; animation: aparecer 0.3s ease-out; max-height: 80vh; overflow-y: auto;
+        .cabecalho h1 {
+            color: var(--cor-primaria);
+            font-size: 22px;
         }
-        @keyframes aparecer {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .painel-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .painel-titulo { font-weight: bold; color: #ffd700; font-size: 16px; }
-        .btn-fechar {
-            background: #ff4444; border: none; color: white; width: 32px; height: 32px;
-            border-radius: 50%; font-size: 18px; cursor: pointer; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-fechar:hover { background: #cc0000; }
-
-        .estatisticas {
-            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;
-            display: flex; gap: 15px; flex-wrap: wrap;
-        }
-        .estat { text-align: center; }
-        .estat-num { font-size: 20px; font-weight: bold; color: #ffd700; }
-        .estat-texto { font-size: 12px; color: #aaa; }
-
         .historico {
-            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;
-            max-height: 200px; overflow-y: auto; font-size: 13px;
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
         }
-        .historico-item { padding: 4px 0; border-bottom: 1px solid #333; word-break: break-word; }
-        .historico-data { color: #888; font-size: 11px; }
-
-        .botoes-painel { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-        .btn-painel {
-            padding: 8px 14px; background: #334155; color: white; border: none; border-radius: 6px;
-            cursor: pointer; font-size: 14px; transition: background 0.2s;
+        .mensagem {
+            margin: 10px 0;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 85%;
+            line-height: 1.5;
         }
-        .btn-painel:hover { background: #475569; }
-        .senha-campo {
-            padding: 10px; border-radius: 6px; border: 1px solid #ffd700;
-            background: #1e293b; color: white; width: 100%; max-width: 280px; font-size: 15px;
+        .mensagem.ia {
+            background: var(--cor-ia);
+            border-left: 4px solid var(--cor-primaria);
+            border-top-left-radius: 4px;
         }
-
-        .chat {
-            flex: 1; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.25);
-            border-radius: 12px; margin-bottom: 12px; min-height: 320px;
+        .mensagem.usuario {
+            background: var(--cor-usuario);
+            border-right: 4px solid var(--cor-primaria);
+            border-top-right-radius: 4px;
+            margin-left: auto;
         }
-        .mensagem { margin: 10px 0; padding: 12px; border-radius: 12px; max-width: 90%; line-height: 1.5; }
-        .eu { background: #00d9ff22; margin-left: auto; border-bottom-right-radius: 4px; }
-        .jarvis { background: #9922ff22; margin-right: auto; border-bottom-left-radius: 4px; }
-        .digitando { color: #888; font-style: italic; }
-
-        .entrada-container { display: flex; flex-direction: column; gap: 8px; }
-        .botoes-modos { display: flex; gap: 8px; }
-        .btn-modo {
-            flex: 1; padding: 10px; border: none; border-radius: 10px;
-            font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s;
-            user-select: none; -webkit-tap-highlight-color: transparent;
+        .imagem-resposta {
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 2px solid var(--cor-primaria);
+            max-width: 280px;
+            width: 100%;
         }
-        .btn-ensinar { background: linear-gradient(135deg, #ff9500, #e67e00); color: white; }
-        .btn-ensinar.ativo { box-shadow: 0 0 12px #ff9500; transform: scale(0.98); }
-        .btn-desenhar { background: linear-gradient(135deg, #9922ff, #7b00d9); color: white; }
-        .btn-desenhar.ativo { box-shadow: 0 0 12px #9922ff; transform: scale(0.98); }
-
-        .entrada { display: flex; gap: 10px; align-items: center; }
-        #mensagem {
-            flex: 1; padding: 14px; border-radius: 25px; border: 2px solid #00d9ff;
-            background: #1e293b; color: white; font-size: 16px; outline: none;
+        .entrada-area {
+            padding: 15px;
+            border-top: 2px solid var(--cor-primaria);
+            background: rgba(0, 0, 0, 0.3);
         }
-        #enviar {
-            width: 52px; height: 52px; border-radius: 50%; border: none;
-            background: linear-gradient(135deg, #00d9ff, #0088ff); color: white;
-            font-size: 20px; cursor: pointer; box-shadow: 0 0 8px #00d9ff66;
-            user-select: none; -webkit-tap-highlight-color: transparent;
+        .botoes-modos {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-        .comandos { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+        .botao-modo {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+        .botao-modo:active { transform: scale(0.97); }
+        .botao-modo.ensinar { background: var(--cor-botao-ensinar); }
+        .botao-modo.ensinar.ativo { box-shadow: 0 0 12px var(--cor-botao-ensinar); }
+        .botao-modo.desenhar { background: var(--cor-botao-desenhar); }
+        .botao-modo.desenhar.ativo { box-shadow: 0 0 12px var(--cor-botao-desenhar); }
+        .caixa-envio {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        #entrada {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 25px;
+            border: 2px solid var(--cor-primaria);
+            background: rgba(30, 58, 95, 0.6);
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        #btnEnviar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--cor-primaria);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .painel-adm {
+            background: rgba(20, 80, 40, 0.8);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+        }
+        .painel-adm.aberto { display: block; }
+        .btn-fechar {
+            background: #ff4444;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .info-aprendizado {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .comandos-dica {
+            font-size: 12px;
+            color: #88aacc;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="cabecalho">
-        <div class="titulo">🤖 JARVIS 2.3</div>
-        <div class="status" id="status">Conectado ✅</div>
+<div class="cabecalho">
+    <h1>🤖 JARVIS</h1>
+</div>
+
+<div class="historico" id="historico">
+    <div class="mensagem ia">
+        📚 Toque em <strong>Ensinar</strong> pra me dar conhecimento<br>
+        🎨 Toque em <strong>Desenhar</strong> pra eu criar imagens<br>
+        Pergunte as horas, cálculos, ou qualquer coisa que você me ensinou!
     </div>
+</div>
 
-    <div class="painel-criador" id="painelCriador">
-        <div class="painel-cabecalho">
-            <div class="painel-titulo">⚙️ PAINEL DO CRIADOR</div>
-            <button class="btn-fechar" id="btnFechar">❌</button>
-        </div>
-
-        <div class="estatisticas">
-            <div class="estat">
-                <div class="estat-num" id="contUsuarios">0</div>
-                <div class="estat-texto">Pessoas usando</div>
-            </div>
-            <div class="estat">
-                <div class="estat-num" id="contPerguntas">0</div>
-                <div class="estat-texto">Perguntas feitas</div>
-            </div>
-            <div class="estat">
-                <div class="estat-num" id="contConhecimento">0</div>
-                <div class="estat-texto">Coisas aprendidas</div>
-            </div>
-        </div>
-
-        <div class="historico" id="historico">
-            <strong>📝 Últimas perguntas:</strong><br>
-            Ainda não há registros...
-        </div>
-
-        <div class="botoes-painel">
-            <button class="btn-painel" id="btnLimparConversa">🧹 Limpar Conversa</button>
-            <button class="btn-painel" id="btnLimparHistorico">📜 Limpar Histórico</button>
-            <button class="btn-painel" id="btnApagarTudo">🗑️ Apagar Tudo</button>
-        </div>
-        <input type="password" class="senha-campo" id="senhaAdmin" placeholder="Senha">
+<div class="entrada-area">
+    <div class="botoes-modos">
+        <button class="botao-modo ensinar" id="btnEnsinar">📚 Ensinar</button>
+        <button class="botao-modo desenhar" id="btnDesenhar">🎨 Desenhar</button>
     </div>
-
-    <div class="chat" id="chat">
-        <div class="mensagem jarvis">
-            Olá! Eu sou o JARVIS 2.3! 🤖<br><br>
-            📚 Toque em Ensinar pra me dar conhecimento<br>
-            🎨 Toque em Desenhar pra eu criar imagens<br>
-            Pergunte as horas, cálculos, ou qualquer coisa que você me ensinou!
-        </div>
+    <div class="caixa-envio">
+        <input type="text" id="entrada" placeholder="Escreva sua mensagem...">
+        <button id="btnEnviar">➤</button>
     </div>
-
-    <div class="entrada-container">
-        <div class="botoes-modos">
-            <button class="btn-modo btn-ensinar" id="btnEnsinar">📚 Ensinar</button>
-            <button class="btn-modo btn-desenhar" id="btnDesenhar">🎨 Desenhar</button>
-        </div>
-        <div class="entrada">
-            <input type="text" id="mensagem" placeholder="Escreva sua mensagem...">
-            <button id="enviar">➤</button>
-        </div>
-        <div class="comandos">Comandos: que horas são? / quem te criou? / quanto é 2+2</div>
+    <div class="comandos-dica">
+        Comandos: que horas são? / quem te criou? / quanto é 2+2
     </div>
+</div>
+
+<div class="painel-adm" id="painelAdm">
+    <h3>🔐 Painel de Administração</h3>
+    <p>Você é o criador! Aqui está tudo que eu aprendi:</p>
+    <div class="info-aprendizado" id="listaAprendizado">
+        <em>Nada ensinado ainda...</em>
+    </div>
+    <button class="btn-fechar" id="btnFecharAdm">Fechar</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-database-compat.js"></script>
 
 <script>
-const senhaCorreta = "Wubba Lubba Dub Dub";
-const CRIADOR = "Você é o meu criador! 🤖❤️";
+    const firebaseConfig = {
+        apiKey: "AIzaSyAXOSDRxiVUola9pZ2WSUfZtrUl2XsinFk",
+        authDomain: "ia-mineira.firebaseapp.com",
+        databaseURL: "https://ia-mineira-default-rtdb.firebaseio.com",
+        projectId: "ia-mineira",
+        storageBucket: "ia-mineira.firebasestorage.app",
+        messagingSenderId: "243372611456",
+        appId: "1:243372611456:web:e0e72e6368ea4d6a721365"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const refConhecimento = db.ref('conhecimento');
 
-// RESPOSTAS BÁSICAS JÁ PRONTAS
-const respostasBasicas = {
-    "olá": "Olá! Tudo bem? Como posso te ajudar? 🤖",
-    "oi": "Oi! Tudo bem contigo? 😊",
-    "e aí": "E aí! Tudo beleza? 🤖",
-    "bom dia": "Bom dia! Que seu dia seja ótimo! ☀️",
-    "boa tarde": "Boa tarde! Tudo bem? 🌤️",
-    "boa noite": "Boa noite! Descanse bem! 🌙",
-    "tudo bem": "Tudo ótimo! E com você? 🤖",
-    "como vai": "Vou muito bem, obrigado por perguntar! 😊",
-    "quem é você": "Eu sou o JARVIS 2.3, sua inteligência artificial! 🤖 Criada por você!",
-    "obrigado": "De nada! Estou sempre à disposição! ✅",
-    "valeu": "De nada! Quando precisar, é só chamar! 🤖",
-    "quanto é 2+2": "2 + 2 = 4 ✅",
-    "2+2": "2 + 2 = 4 ✅",
-    "quanto é 5+3": "5 + 3 = 8 ✅",
-    "quanto é 10-4": "10 - 4 = 6 ✅"
-};
+    let conhecimento = {};
+    let modoEnsinar = false;
+    let modoDesenhar = false;
+    let senhaAdm = "Wubba Lubba Dub Dub";
+    let criador = "Mateus";
 
-const btnEnsinar = document.getElementById("btnEnsinar");
-const btnDesenhar = document.getElementById("btnDesenhar");
-const painelCriador = document.getElementById("painelCriador");
-const btnFechar = document.getElementById("btnFechar");
-const chat = document.getElementById("chat");
-const mensagemEl = document.getElementById("mensagem");
-const btnEnviar = document.getElementById("enviar");
-const btnLimparConversa = document.getElementById("btnLimparConversa");
-const btnLimparHistorico = document.getElementById("btnLimparHistorico");
-const btnApagarTudo = document.getElementById("btnApagarTudo");
-const senhaAdmin = document.getElementById("senhaAdmin");
-const statusEl = document.getElementById("status");
-const contUsuarios = document.getElementById("contUsuarios");
-const contPerguntas = document.getElementById("contPerguntas");
-const contConhecimento = document.getElementById("contConhecimento");
-const historicoEl = document.getElementById("historico");
-
-let modo = "conversa";
-let ensinarEtapa = 0;
-let perguntaGuardada = "";
-let conhecimento = JSON.parse(localStorage.getItem("conhecimentoJarvis") || "{}");
-let historico = JSON.parse(localStorage.getItem("historicoJarvis") || "[]");
-let totalPerguntas = parseInt(localStorage.getItem("totalPerguntas") || "0");
-let totalUsuarios = parseInt(localStorage.getItem("totalUsuarios") || "1");
-
-if(!localStorage.getItem("jaVisitou")){
-    localStorage.setItem("jaVisitou", "sim");
-    totalUsuarios += 1;
-    localStorage.setItem("totalUsuarios", totalUsuarios);
-}
-
-function atualizarNumeros(){
-    contUsuarios.textContent = totalUsuarios;
-    contPerguntas.textContent = totalPerguntas;
-    contConhecimento.textContent = Object.keys(conhecimento).length;
-}
-
-function atualizarHistoricoNaTela(){
-    if(historico.length === 0){
-        historicoEl.innerHTML = "<strong>📝 Últimas perguntas:</strong><br>Ainda não há registros...";
-        return;
-    }
-    let html = "<strong>📝 Últimas perguntas:</strong><br>";
-    historico.slice(-15).reverse().forEach(item => {
-        html += `<div class="historico-item"><span class="historico-data">${item.data}</span><br>${item.texto}</div>`;
+    refConhecimento.on('value', (snapshot) => {
+        conhecimento = snapshot.val() || {};
     });
-    historicoEl.innerHTML = html;
-}
 
-function salvarNoHistorico(texto){
-    totalPerguntas += 1;
-    localStorage.setItem("totalPerguntas", totalPerguntas);
-    historico.push({
-        texto: texto,
-        data: new Date().toLocaleString('pt-BR')
+    function salvarConhecimento(pergunta, resposta) {
+        refConhecimento.child(pergunta.toLowerCase()).set(resposta);
+    }
+
+    const historico = document.getElementById('historico');
+    const entrada = document.getElementById('entrada');
+    const btnEnviar = document.getElementById('btnEnviar');
+    const btnEnsinar = document.getElementById('btnEnsinar');
+    const btnDesenhar = document.getElementById('btnDesenhar');
+    const painelAdm = document.getElementById('painelAdm');
+    const btnFecharAdm = document.getElementById('btnFecharAdm');
+    const listaAprendizado = document.getElementById('listaAprendizado');
+
+    function adicionarMensagem(texto, remetente, imagemUrl = null) {
+        const div = document.createElement('div');
+        div.className = `mensagem ${remetente}`;
+        div.innerHTML = texto.replace(/\n/g, '<br>');
+        if (imagemUrl) {
+            div.innerHTML += `<img src="${imagemUrl}" alt="Desenho" class="imagem-resposta" onerror="this.style.display='none'">`;
+        }
+        historico.appendChild(div);
+        historico.scrollTop = historico.scrollHeight;
+    }
+
+    async function gerarImagem(descricao) {
+        const prompt = encodeURIComponent(descricao + ", estilo simples, bonito, colorido, desenho limpo");
+        const urlImagem = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=512&seed=${Math.floor(Math.random() * 100000)}&nofeed=true`;
+        
+        adicionarMensagem(`🎨 Desenhando: "${descricao}"...\n⌘ Aguarde um pouquinho...`, "ia");
+        
+        setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = 'mensagem ia';
+            div.innerHTML = `
+                <div>🎨 Pronto! ✅</div>
+                <img src="${urlImagem}" alt="${descricao}" class="imagem-resposta" onerror="this.parentElement.innerHTML += '<div style=color:#ff6666;margin-top:8px>❌ Não consegui carregar a imagem. Tente de novo!</div>'">
+                <div style="font-size:12px;color:#88aacc;margin-top:5px;">Desenho: "${descricao}"</div>
+            `;
+            historico.appendChild(div);
+            historico.scrollTop = historico.scrollHeight;
+        }, 2000);
+    }
+
+    btnEnsinar.addEventListener('click', () => {
+        modoEnsinar = !modoEnsinar;
+        modoDesenhar = false;
+        btnDesenhar.classList.remove('ativo');
+        if (modoEnsinar) {
+            btnEnsinar.classList.add('ativo');
+            adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta ou assunto.", "ia");
+        } else {
+            btnEnsinar.classList.remove('ativo');
+            adicionarMensagem("❌ Modo Ensinar desativado!", "ia");
+        }
     });
-    if(historico.length > 50) historico.shift();
-    localStorage.setItem("historicoJarvis", JSON.stringify(historico));
-    atualizarNumeros();
-    atualizarHistoricoNaTela();
-}
 
-function atualizarStatus(){
-    if(navigator.onLine) statusEl.innerHTML = "Conectado ✅";
-    else statusEl.innerHTML = "<span class='desconectado'>Sem conexão ❌</span>";
-}
-window.addEventListener("online", atualizarStatus);
-window.addEventListener("offline", atualizarStatus);
-atualizarStatus();
-
-function abrirPainel(){
-    painelCriador.style.display = "block";
-    atualizarNumeros();
-    atualizarHistoricoNaTela();
-}
-function fecharPainel(){
-    painelCriador.style.display = "none";
-}
-btnFechar.addEventListener("click", fecharPainel);
-
-function adicionarMensagem(texto, remetente){
-    const div = document.createElement("div");
-    div.classList.add("mensagem", remetente);
-    div.innerHTML = texto.replace(/\n/g, "<br>");
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function mostrarDigitando(){
-    const div = document.createElement("div");
-    div.classList.add("mensagem", "jarvis", "digitando");
-    div.id = "digitando";
-    div.textContent = "JARVIS está pensando...";
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-}
-function removerDigitando(){
-    const d = document.getElementById("digitando"); if(d) d.remove();
-}
-
-btnEnsinar.addEventListener("click", ()=>{
-    modo = modo === "ensinar" ? "conversa" : "ensinar";
-    ensinarEtapa = 0; perguntaGuardada = "";
-    btnEnsinar.classList.toggle("ativo", modo === "ensinar");
-    btnDesenhar.classList.remove("ativo");
-    if(modo === "ensinar"){
-        adicionarMensagem("📚 Modo Ensinar ativado!\nMe diga a pergunta ou assunto.", "jarvis");
-    } else {
-        adicionarMensagem("Modo Ensinar desativado!", "jarvis");
-    }
-});
-
-btnDesenhar.addEventListener("click", ()=>{
-    modo = modo === "desenhar" ? "conversa" : "desenhar";
-    btnDesenhar.classList.toggle("ativo", modo === "desenhar");
-    btnEnsinar.classList.remove("ativo");
-    if(modo === "desenhar"){
-        adicionarMensagem("🎨 Modo Desenhar ativado!\nMe descreva o que desenhar!", "jarvis");
-    }
-});
-
-function salvarConhecimento(){
-    localStorage.setItem("conhecimentoJarvis", JSON.stringify(conhecimento));
-    atualizarNumeros();
-}
-
-function responder(texto){
-    mostrarDigitando();
-    setTimeout(()=>{
-        removerDigitando();
-        let resp = "";
-        const tx = texto.toLowerCase().trim();
-
-        // 3 FORMAS DE ABRIR O PAINEL
-        if(/quem te criou|quem é seu criador|seu criador|quem te fez/i.test(tx) || tx === senhaCorreta.toLowerCase()){
-            abrirPainel();
-            resp = CRIADOR + "\n\n🔓 Painel de Administração desbloqueado!";
+    btnDesenhar.addEventListener('click', () => {
+        modoDesenhar = !modoDesenhar;
+        modoEnsinar = false;
+        btnEnsinar.classList.remove('ativo');
+        if (modoDesenhar) {
+            btnDesenhar.classList.add('ativo');
+            adicionarMensagem("🎨 Modo Desenhar ativado!\nMe descreva o que desenhar!", "ia");
+        } else {
+            btnDesenhar.classList.remove('ativo');
+            adicionarMensagem("❌ Modo Desenhar desativado!", "ia");
         }
-        // RESPOSTAS BÁSICAS PRONTAS
-        else if(respostasBasicas[tx]){
-            resp = respostasBasicas[tx];
+    });
+
+    function responder(pergunta) {
+        const p = pergunta.toLowerCase().trim();
+
+        if (p.includes("quem te criou") || p.includes("quem te criou?") || p.includes("quem é seu criador")) {
+            abrirPainelAdm();
+            return `Você é o meu criador! 🤖❤️\n🔓 Painel de Administração desbloqueado!`;
         }
-        // MODO ENSINAR
-        else if(modo === "ensinar"){
-            if(ensinarEtapa === 0){
-                perguntaGuardada = texto;
-                ensinarEtapa = 1;
-                resp = `Ótimo! ✅ Agora me diga a resposta para: "${texto}"`;
-            } else if(ensinarEtapa === 1){
-                conhecimento[perguntaGuardada.toLowerCase()] = texto;
-                salvarConhecimento();
-                ensinarEtapa = 0; perguntaGuardada = "";
-                resp = `Aprendi com sucesso! 🧠✅`;
+
+        if (p === senhaAdm || p.includes(senhaAdm)) {
+            abrirPainelAdm();
+            return `🔓 Painel de Administração desbloqueado!\nBem-vindo, criador! 🤖`;
+        }
+
+        if (p.includes("que horas são") || p.includes("horas são") || p.includes("que horas é")) {
+            const agora = new Date();
+            const h = agora.getHours().toString().padStart(2, '0');
+            const m = agora.getMinutes().toString().padStart(2, '0');
+            const s = agora.getSeconds().toString().padStart(2, '0');
+            return `Agora são ${h}:${m}:${s} ⏰`;
+        }
+
+        const calc = p.match(/quanto é\s*(\d+)\s*([+\-×*÷/])\s*(\d+)/);
+        if (calc) {
+            const a = parseFloat(calc[1]);
+            const op = calc[2];
+            const b = parseFloat(calc[3]);
+            let res;
+            if (op === '+' || op === 'mais') res = a + b;
+            else if (op === '-' || op === 'menos') res = a - b;
+            else if (op === '×' || op === '*' || op === 'vezes') res = a * b;
+            else if (op === '÷' || op === '/') res = Math.round((a / b) * 100) / 100;
+            if (res !== undefined) return `${a} ${op} ${b} = ${res} ✅`;
+        }
+
+        if (conhecimento[p]) return conhecimento[p];
+
+        return "Ainda não sei essa... 🤔\nUse o botão Ensinar pra me ensinar!";
+    }
+
+    function abrirPainelAdm() {
+        painelAdm.classList.add('aberto');
+        let texto = "";
+        if (Object.keys(conhecimento).length === 0) {
+            texto = "<em>Nada ensinado ainda...</em>";
+        } else {
+            for (let pergunta in conhecimento) {
+                texto += `<strong>Pergunta:</strong> ${pergunta}<br><strong>Resposta:</strong> ${conhecimento[pergunta]}<br><hr style="border-color:#00ff8833; margin:6px 0;">`;
             }
         }
-        // MODO DESENHAR
-        else if(modo === "desenhar"){
-            resp = `🎨 Desenhando: "${texto}"...\n\nPronto! ✅`;
-        }
-        // COMANDOS ESPECIAIS
-        else if(/que horas são/i.test(tx)){
-            const agora = new Date();
-            resp = `Agora são ${agora.toLocaleTimeString('pt-BR')} ⏰`;
-        } else if(/quanto é|calcula/i.test(tx) || texto.match(/\d+\s*[+\-*/]\s*\d+/)){
-            const expr = texto.match(/[\d.]+\s*[+\-*/]\s*[\d.]+/);
-            if(expr){
-                try { const res = eval(expr[0]); resp = `${expr[0]} = ${res} ✅`; }
-                catch { resp = "Não consegui calcular 😅"; }
-            } else resp = "Exemplo: quanto é 5+3";
-        }
-        // CONHECIMENTO SALVO
-        else if(conhecimento[tx]){
-            resp = conhecimento[tx];
-        }
-        // NÃO SABE
-        else {
-            resp = `Ainda não aprendi isso! 🤔\nToque em 📚 Ensinar pra me ensinar a responder sobre: "${texto}"!`;
-        }
-
-        adicionarMensagem(resp, "jarvis");
-    }, 800);
-}
-
-btnLimparConversa.addEventListener("click", ()=>{
-    if(senhaAdmin.value !== senhaCorreta) return adicionarMensagem("❌ Senha errada!", "jarvis");
-    chat.innerHTML = "";
-    adicionarMensagem("Conversa limpa! ✅", "jarvis");
-});
-
-btnLimparHistorico.addEventListener("click", ()=>{
-    if(senhaAdmin.value !== senhaCorreta) return adicionarMensagem("❌ Senha errada!", "jarvis");
-    historico = [];
-    totalPerguntas = 0;
-    localStorage.setItem("historicoJarvis", "[]");
-    localStorage.setItem("totalPerguntas", "0");
-    atualizarNumeros();
-    atualizarHistoricoNaTela();
-    adicionarMensagem("📜 Histórico e contador zerados! ✅", "jarvis");
-});
-
-btnApagarTudo.addEventListener("click", ()=>{
-    if(senhaAdmin.value !== senhaCorreta) return adicionarMensagem("❌ Senha errada!", "jarvis");
-    if(confirm("Tem certeza? Vai apagar TUDO!")){
-        conhecimento = {};
-        historico = [];
-        totalPerguntas = 0;
-        localStorage.removeItem("conhecimentoJarvis");
-        localStorage.removeItem("historicoJarvis");
-        localStorage.removeItem("totalPerguntas");
-        atualizarNumeros();
-        atualizarHistoricoNaTela();
-        adicionarMensagem("🗑️ TUDO foi apagado!", "jarvis");
+        listaAprendizado.innerHTML = texto;
     }
-});
 
-function enviar(){
-    const texto = mensagemEl.value.trim();
-    if(!texto) return;
-    salvarNoHistorico(texto);
-    adicionarMensagem(texto, "eu");
-    mensagemEl.value = "";
-    responder(texto);
-}
+    btnFecharAdm.addEventListener('click', () => {
+        painelAdm.classList.remove('aberto');
+    });
 
-btnEnviar.addEventListener("click", enviar);
-mensagemEl.addEventListener("keydown", e=>{ if(e.key === "Enter") enviar(); });
+    function enviarMensagem() {
+        const texto = entrada.value.trim();
+        if (!texto) return;
+        entrada.value = "";
 
-atualizarNumeros();
+        if (modoDesenhar) {
+            const sair = ['sair', 'sair do modo', 'parar', 'cancelar', 'fechar', 'obrigado'].some(p => texto.toLowerCase().includes(p));
+            if (sair) {
+                modoDesenhar = false;
+                btnDesenhar.classList.remove('ativo');
+                adicionarMensagem("✅ Saindo do modo Desenhar!", "ia");
+                return;
+            }
+            adicionarMensagem(texto, "usuario");
+            gerarImagem(texto);
+            return;
+        }
+
+        if (modoEnsinar) {
+            const partes = texto.split('=');
+            if (partes.length >= 2) {
+                const pergunta = partes[0].trim();
+                const resposta = partes.slice(1).join('=').trim();
+                salvarConhecimento(pergunta, resposta);
+                adicionarMensagem(`📚 Eu aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`, "ia");
+            } else {
+                adicionarMensagem("⚠️ Escreva assim: pergunta = resposta\nExemplo: Qual sua cor favorita? = Eu gosto de azul!", "ia");
+            }
+            return;
+        }
+
+        adicionarMensagem(texto, "usuario");
+        setTimeout(() => {
+            const resp = responder(texto);
+            adicionarMensagem(resp, "ia");
+        }, 400);
+    }
+
+    btnEnviar.addEventListener('click', enviarMensagem);
+    entrada.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') enviarMensagem();
+    });
 </script>
-</body>
-    </html>
 
-    
+</body>
+</html>
+
