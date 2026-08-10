@@ -263,59 +263,6 @@
         <button class="botao-adm botao-adulto" id="btnAlternarAdulto">🔞 Alternar Modo Adulto</button>
     </div>
 
-    <h4 style="margin-top:12px;">📋 Solicitações de liberação:</h4>
-    <div class="lista-solicitacoes" id="listaSolicitacoes">
-        <em>Nenhuma solicitação pendente...</em>
-    </div>
-
-    <h4 style="margin-top:12px;">📚 Conhecimento salvo:</h4>
-    <div class="info-aprendizado" id="listaAprendizado">
-        <em>Nada ensinado ainda...</em>
-    </div>
-
-    <button class="botao-adm botao-fechar" id="btnFecharPainel">❌ Fechar</button>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-database-compat.js"></script>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAXOSDRxiVUola9pZ2WSUfZtrUl2XsinFk",
-        authDomain: "ia-mineira.firebaseapp.com",
-        databaseURL: "https://ia-mineira-default-rtdb.firebaseio.com",
-        projectId: "ia-mineira",
-        storageBucket: "ia-mineira.firebasestorage.app",
-        messagingSenderId: "243372611456",
-        appId: "1:243372611456:web:e0e72e6368ea4d6a721365"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const refConhecimento = db.ref('conhecimento');
-    const refAvisoGlobal = db.ref('avisoGlobal');
-    const refSolicitacoes = db.ref('solicitacoesAdulto');
-    const refConfig = db.ref('configuracao');
-
-    let conhecimento = {};
-    let modoEnsinar = false;
-    let modoDesenhar = false;
-    let senhaAdm = "Wubba Lubba Dub Dub";
-    let ultimoAvisoRecebido = "";
-    let modoAdultoLiberado = false;
-    let usuarioId = localStorage.getItem('usuarioId') || ('usuario_' + Math.random().toString(36).substr(2, 9));
-    localStorage.setItem('usuarioId', usuarioId);
-    let ultimoClique = 0;
-    const INTERVALO_ANTI_DUPLICADO = 300;
-
-    refConhecimento.on('value', function(snapshot) {
-        conhecimento = snapshot.val() || {};
-    });
-
-    refAvisoGlobal.on('value', function(snapshot) {
-        const aviso = snapshot.val();
-        if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
-            ultimoAvisoRecebido = aviso.texto;
-            mostrarAvisoGlobal(aviso.texto);
-
+    <h4 style="margin-top:12px;">📋 Solic
 
         
