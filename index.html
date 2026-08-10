@@ -5,542 +5,500 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#00d9ff">
-    <link rel="icon" type="image/png" sizes="192x192" href="https://cdn-icons-png.flaticon.com/512/1005/1005141.png">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1005/1005141.png">
-    <title>JARVIS</title>
+    <title>JARVIS 2.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         button { 
             cursor: pointer; 
-            touch-action: pan-y; 
-            border: 2px solid transparent;
+            border: none;
+            border-radius: 8px;
             outline: none;
             transition: all 0.1s;
-            -webkit-appearance: none;
-            appearance: none;
             min-height: 56px;
-            min-width: 56px;
+            touch-action: manipulation;
         }
-        button:active { 
-            transform: scale(0.92); 
-            opacity: 0.85;
-        }
+        button:active { transform: scale(0.92); }
         :root {
-            --fundo-escuro: #0f172a;
-            --cor-primaria: #00d9ff;
-            --cor-ia: #1e3a5f;
-            --cor-usuario: #006688;
-            --cor-botao-ensinar: #ff9900;
-            --cor-botao-desenhar: #9933ff;
-            --cor-perigo: #ff3333;
-            --cor-aviso: #ffcc00;
-            --cor-mensagem: #00cc66;
-            --cor-adulto: #ff4466;
+            --fundo: #0f172a;
+            --primaria: #00d9ff;
+            --ia: #1e3a5f;
+            --usuario: #006688;
+            --ensinar: #ff9900;
+            --desenhar: #9933ff;
+            --adulto: #ff4466;
+            --perigo: #ff3333;
+            --aviso: #ffcc00;
         }
-        html, body { height: 100%; }
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            color: #e6f1ff;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
+        html, body { 
+            height: 100%; 
+            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a); 
+            color: #fff;
+            overflow: hidden;
         }
-        .cabecalho {
-            padding: 12px 15px;
-            text-align: center;
-            border-bottom: 2px solid var(--cor-primaria);
-            background: rgba(0, 0, 0, 0.3);
+        .cabecalho { 
+            padding: 12px; 
+            text-align: center; 
+            border-bottom: 2px solid var(--primaria); 
+            background: rgba(0,0,0,0.3); 
         }
-        .cabecalho h1 {
-            color: var(--cor-primaria);
-            font-size: 22px;
-        }
-        .cabecalho h1 .modo-adulto {
-            color: var(--cor-adulto);
-            font-size: 16px;
+        .cabecalho h1 { color: var(--primaria); font-size: 22px; }
+        .etiqueta-adulto { 
+            display: inline-block;
+            background: var(--adulto);
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
             margin-left: 8px;
         }
-        .historico {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+        .historico { 
+            flex: 1; 
+            padding: 15px; 
+            overflow-y: auto; 
+            height: calc(100vh - 200px); 
         }
         .mensagem {
-            margin: 10px 0;
-            padding: 12px 16px;
-            border-radius: 18px;
-            max-width: 85%;
+            margin: 10px 0; 
+            padding: 12px 16px; 
+            border-radius: 18px; 
+            max-width: 85%; 
             line-height: 1.5;
             word-wrap: break-word;
         }
-        .mensagem.ia {
-            background: var(--cor-ia);
-            border-left: 4px solid var(--cor-primaria);
-            border-top-left-radius: 4px;
+        .mensagem.ia { 
+            background: var(--ia); 
+            border-left: 4px solid var(--primaria); 
+            border-top-left-radius: 4px; 
         }
-        .mensagem.usuario {
-            background: var(--cor-usuario);
-            border-right: 4px solid var(--cor-primaria);
-            border-top-right-radius: 4px;
-            margin-left: auto;
+        .mensagem.adulto { 
+            background: rgba(255,68,102,0.2); 
+            border-left-color: var(--adulto);
+            border-left: 4px solid var(--adulto); 
         }
-        .mensagem.aviso-todos {
-            background: rgba(255, 204, 0, 0.2);
-            border: 2px solid #ffcc00;
-            max-width: 100%;
-            text-align: center;
-            font-weight: bold;
-            animation: piscar 1s infinite alternate;
+        .mensagem.usuario { 
+            background: var(--usuario); 
+            border-right: 4px solid var(--primaria); 
+            border-top-right-radius: 4px; 
+            margin-left: auto; 
         }
-        @keyframes piscar {
-            from { box-shadow: 0 0 5px #ffcc00; }
-            to { box-shadow: 0 0 20px #ffcc00; }
+        .mensagem.aviso-todos { 
+            background: rgba(255,204,0,0.2); 
+            border: 2px solid #ffcc00; 
+            max-width: 100%; 
+            text-align: center; 
+            animation: piscar 1s infinite alternate; 
         }
-        .imagem-resposta {
-            margin-top: 10px;
-            border-radius: 10px;
-            border: 2px solid var(--cor-primaria);
-            width: 100%;
-            max-width: 100%;
+        @keyframes piscar { 
+            from { box-shadow: 0 0 5px #ffcc00; } 
+            to { box-shadow: 0 0 20px #ffcc00; } 
+        }
+        .imagem { 
+            margin-top: 10px; 
+            border-radius: 10px; 
+            border: 2px solid var(--primaria); 
+            width: 100%; 
+            max-width: 512px; 
             height: auto;
-            display: block;
-            object-fit: contain;
         }
-        .entrada-area {
-            padding: 12px 15px 15px;
-            border-top: 2px solid var(--cor-primaria);
-            background: rgba(0, 0, 0, 0.3);
-            padding-bottom: calc(15px + env(safe-area-inset-bottom));
+        .imagem.adulto { border-color: var(--adulto); }
+        .entrada-area { 
+            padding: 12px 15px; 
+            border-top: 2px solid var(--primaria); 
+            background: rgba(0,0,0,0.3); 
         }
-        .botoes-modos {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+        .botoes-modos { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .botao-modo { 
+            flex: 1; 
+            min-width: 90px;
+            padding: 12px 8px; 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #fff; 
+            background: #555; 
         }
-        .botao-modo {
-            flex: 1;
-            padding: 16px 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            color: white;
-            background: gray;
-            min-height: 56px;
-        }
-        .botao-modo.ensinar { background: var(--cor-botao-ensinar); }
-        .botao-modo.ensinar.ativo { box-shadow: 0 0 12px var(--cor-botao-ensinar); }
-        .botao-modo.desenhar { background: var(--cor-botao-desenhar); }
-        .botao-modo.desenhar.ativo { box-shadow: 0 0 12px var(--cor-botao-desenhar); }
-        .caixa-envio {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+        .botao-modo.ensinar { background: var(--ensinar); }
+        .botao-modo.ensinar.ativo { box-shadow: 0 0 12px var(--ensinar); }
+        .botao-modo.desenhar { background: var(--desenhar); }
+        .botao-modo.desenhar.ativo { box-shadow: 0 0 12px var(--desenhar); }
+        .botao-modo.adulto { background: var(--adulto); display: none; }
+        .botao-modo.adulto.visivel { display: block; }
+        .botao-modo.adulto.ativo { box-shadow: 0 0 12px var(--adulto); }
+        .caixa-envio { display: flex; gap: 10px; align-items: center; }
         #entrada {
-            flex: 1;
-            padding: 14px 16px;
-            border-radius: 25px;
-            border: 2px solid var(--cor-primaria);
-            background: rgba(30, 58, 95, 0.6);
-            color: white;
-            font-size: 16px;
-            outline: none;
+            flex: 1; 
+            padding: 14px 16px; 
+            border-radius: 25px; 
+            border: 2px solid var(--primaria);
+            background: rgba(30,58,95,0.6); 
+            color: #fff; 
+            font-size: 16px; 
+            outline: none; 
             min-height: 56px;
         }
-        #btnEnviar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: none;
-            background: var(--cor-primaria);
-            color: white;
-            font-size: 20px;
-            flex-shrink: 0;
+        #btnEnviar { 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 50%; 
+            background: var(--primaria); 
+            color: #fff; 
+            font-size: 20px; 
         }
         .painel-adm {
-            background: rgba(20, 80, 40, 0.95);
-            border: 2px solid #00ff88;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 10px 0;
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: rgba(20,60,40,0.98);
+            border: 3px solid #00ff88; 
+            z-index: 999; 
+            padding: 20px; 
+            overflow-y: auto; 
             display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 999;
-            overflow-y: auto;
         }
         .painel-adm.aberto { display: block; }
-        .botoes-adm {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 12px 0;
-        }
-        .botao-adm {
-            flex: 1;
-            min-width: 100px;
-            padding: 14px 8px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: bold;
-            color: white;
-            min-height: 52px;
-        }
-        .botao-apagar { background: var(--cor-perigo); }
-        .botao-limpar { background: var(--cor-aviso); color: #000; }
-        .botao-mensagem { background: var(--cor-mensagem); }
-        .botao-adulto { background: var(--cor-adulto); }
-        .botao-fechar {
-            background: #444;
-            width: 100%;
-            margin-top: 10px;
-        }
-        .info-aprendizado, .lista-solicitacoes {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 13px;
-        }
-        .solicitacao-item {
-            padding: 10px 8px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
+        .caixa-confirmacao {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
+            padding: 20px;
         }
-        .botao-aprovar { background: #00cc66; border: none; padding: 10px 14px; border-radius: 6px; color: white; font-size: 14px; min-height: 44px; }
-        .botao-negar { background: #ff3333; border: none; padding: 10px 14px; border-radius: 6px; color: white; font-size: 14px; min-height: 44px; }
+        .caixa-confirmacao.aberta { display: flex; }
+        .conteudo-confirmacao {
+            background: #1e293b;
+            border: 2px solid var(--adulto);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 400px;
+            text-align: center;
+        }
+        .botoes-adm { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .botao-adm { 
+            flex: 1; 
+            min-width: 100px; 
+            padding: 14px; 
+            color: #fff; 
+            font-weight: bold; 
+        }
+        .botao-apagar { background: var(--perigo); }
+        .botao-limpar { background: var(--aviso); color: #000; }
+        .botao-aviso { background: #00cc66; }
+        .botao-libera-adulto { background: var(--adulto); }
+        .botao-fechar { background: #444; width: 100%; margin-top: 10px; }
+        .lista-dados { 
+            background: rgba(0,0,0,0.4); 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-top: 10px; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            font-size: 13px; 
+        }
     </style>
 </head>
 <body>
 
 <div class="cabecalho">
-    <h1>🤖 JARVIS <span id="indicadorModoAdulto" class="modo-adulto" style="display:none;">🔞 MODO ADULTO LIBERADO</span></h1>
+    <h1>🤖 JARVIS 2.0 <span class="etiqueta-adulto" id="etiquetaAdulto" style="display:none;">+18</span></h1>
 </div>
 
 <div class="historico" id="historico">
     <div class="mensagem ia">
-        💡 <strong>O que eu posso fazer:</strong><br><br>
-        ✅ Dizer oi e te cumprimentar de um jeito diferente dependendo da hora<br>
-        ✅ Responder que horas são agora<br>
-        ✅ Fazer contas de mais, menos, vezes e divisão<br>
-        ✅ Aprender coisas novas quando alguém me ensinar<br>
-        ✅ Criar desenhos e imagens INTEIRAS sem cortar!<br><br>
-        Use os botões abaixo para ativar os modos! 👇
+        💡 <strong>O que eu faço:</strong><br><br>
+        ✅ Cumprimento conforme a hora do dia<br>
+        ✅ Digo as horas e a data<br>
+        ✅ Faço contas: + - × ÷<br>
+        ✅ Aprendo o que você me ensinar<br>
+        ✅ Desenho imagens pra você<br>
+        ✅ Painel secreto do criador<br><br>
+        Use os botões abaixo! 👇
     </div>
 </div>
 
-<div class="entrada-area" id="areaEntrada">
+<div class="entrada-area">
     <div class="botoes-modos">
         <button class="botao-modo ensinar" id="btnEnsinar">📚 Ensinar</button>
         <button class="botao-modo desenhar" id="btnDesenhar">🎨 Desenhar</button>
+        <button class="botao-modo adulto" id="btnAdulto">🔞 Modo +18</button>
     </div>
     <div class="caixa-envio">
-        <input type="text" id="entrada" placeholder="Escreva sua mensagem...">
+        <input type="text" id="entrada" placeholder="Escreva aqui...">
         <button id="btnEnviar">➤</button>
     </div>
 </div>
 
 <div class="painel-adm" id="painelAdm">
-    <h3>🔐 Painel de Administração</h3>
+    <h2>🔐 PAINEL DE ADMINISTRAÇÃO</h2>
+    <p style="margin:10px 0;">Bem-vindo, criador!</p>
     
     <div class="botoes-adm">
-        <button class="botao-adm botao-apagar" id="btnApagar">🗑️ Apagar conhecimento</button>
+        <button class="botao-adm botao-apagar" id="btnApagar">🗑️ Apagar Tudo</button>
         <button class="botao-adm botao-limpar" id="btnLimpar">🧹 Limpar Conversa</button>
-        <button class="botao-adm botao-mensagem" id="btnAvisoTodos">📢 Aviso para todos</button>
-        <button class="botao-adm botao-adulto" id="btnAlternarAdulto">🔞 Alternar Modo Adulto</button>
+        <button class="botao-adm botao-aviso" id="btnAvisoTodos">📢 Aviso Global</button>
+        <button class="botao-adm botao-libera-adulto" id="btnLiberaAdulto">🔞 Liberar Modo +18</button>
     </div>
 
-    <h4 style="margin-top:12px;">📋 Solicitações de liberação:</h4>
-    <div class="lista-solicitacoes" id="listaSolicitacoes">
-        <em>Nenhuma solicitação pendente...</em>
-    </div>
-
-    <h4 style="margin-top:12px;">📚 Conhecimento salvo:</h4>
-    <div class="info-aprendizado" id="listaAprendizado">
+    <h3 style="margin-top:20px;">📚 Conhecimento Salvo:</h3>
+    <div class="lista-dados" id="listaConhecimento">
         <em>Nada ensinado ainda...</em>
     </div>
 
-    <button class="botao-adm botao-fechar" id="btnFecharPainel">❌ Fechar</button>
+    <button class="botao-adm botao-fechar" id="btnFecharPainel">❌ FECHAR</button>
+</div>
+
+<div class="caixa-confirmacao" id="caixaConfirmacaoAdulto">
+    <div class="conteudo-confirmacao">
+        <h3>🔞 CONFIRMAÇÃO DE IDADE</h3>
+        <p style="margin:15px 0;">Este conteúdo é destinado exclusivamente para maiores de 18 anos.<br><br>
+        Inclui educação sobre o corpo humano, saúde e orientações sobre os riscos da pornografia.</p>
+        <div style="display:flex;gap:10px;margin-top:15px;">
+            <button id="btnNaoSouAdulto" style="flex:1;background:#555;">Não tenho 18 anos</button>
+            <button id="btnSouAdulto" style="flex:1;background:var(--adulto);">Tenho 18 anos ou mais</button>
+        </div>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-database-compat.js"></script>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAXOSDRxiVUola9pZ2WSUfZtrUl2XsinFk",
-        authDomain: "ia-mineira.firebaseapp.com",
-        databaseURL: "https://ia-mineira-default-rtdb.firebaseio.com",
-        projectId: "ia-mineira",
-        storageBucket: "ia-mineira.firebasestorage.app",
-        messagingSenderId: "243372611456",
-        appId: "1:243372611456:web:e0e72e6368ea4d6a721365"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const refConhecimento = db.ref('conhecimento');
-    const refAvisoGlobal = db.ref('avisoGlobal');
-    const refSolicitacoes = db.ref('solicitacoesAdulto');
-    const refConfig = db.ref('configuracao');
+// ==============================================
+// FIREBASE — NÃO MUDAR!
+// ==============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAXOSDRxiVUola9pZ2WSUfZtrUl2XsinFk",
+    authDomain: "ia-mineira.firebaseapp.com",
+    databaseURL: "https://ia-mineira-default-rtdb.firebaseio.com",
+    projectId: "ia-mineira",
+    storageBucket: "ia-mineira.firebasestorage.app",
+    messagingSenderId: "243372611456",
+    appId: "1:243372611456:web:e0e72e6368ea4d6a721365"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const refConhecimento = db.ref('conhecimento');
+const refConfiguracao = db.ref('configuracao');
+const refAvisoGlobal = db.ref('avisoGlobal');
 
-    let conhecimento = {};
-    let modoEnsinar = false;
-    let modoDesenhar = false;
-    const senhaAdm = "Wubba Lubba Dub Dub";
-    let ultimoAvisoRecebido = "";
-    let modoAdultoLiberado = false;
-    let usuarioId = localStorage.getItem('usuarioId') || ('usuario_' + Math.random().toString(36).substr(2, 9));
-    localStorage.setItem('usuarioId', usuarioId);
-    let ultimoClique = 0;
-    const INTERVALO_ANTI_DUPLICADO = 300;
+// ==============================================
+// VARIÁVEIS
+// ==============================================
+let conhecimento = {};
+let modoEnsinar = false;
+let modoDesenhar = false;
+let modoAdulto = false;
+let liberadoAdulto = false;
+const senhaAdm = "Wubba Lubba Dub Dub";
+let ultimoClique = 0;
+const INTERVALO = 300;
 
-    refConhecimento.on('value', function(snapshot) {
-        conhecimento = snapshot.val() || {};
-    });
+// ==============================================
+// INICIALIZAÇÃO
+// ==============================================
+refConhecimento.on('value', s => { conhecimento = s.val() || {}; });
+refConfiguracao.child('modoAdultoLiberado').on('value', s => {
+    liberadoAdulto = s.val() || false;
+    atualizarBotaoAdulto();
+});
+refAvisoGlobal.on('value', s => {
+    const aviso = s.val();
+    if (aviso && aviso.texto) mostrarAvisoGlobal(aviso.texto);
+});
 
-    refAvisoGlobal.on('value', function(snapshot) {
-        const aviso = snapshot.val();
-        if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
-            ultimoAvisoRecebido = aviso.texto;
-            mostrarAvisoGlobal(aviso.texto);
-        }
-    });
+// ==============================================
+// PROTEÇÃO DE CLIQUE DUPLICADO
+// ==============================================
+function podeClicar() {
+    const agora = Date.now();
+    if (agora - ultimoClique < INTERVALO) return false;
+    ultimoClique = agora;
+    return true;
+}
 
-    refSolicitacoes.on('value', function(snapshot) {
-        const dados = snapshot.val() || {};
-        atualizarListaSolicitacoes(dados);
-    });
+// ==============================================
+// MOSTRAR MENSAGENS
+// ==============================================
+function adicionarMensagem(texto, quem, imagemUrl, ehAdulto = false) {
+    const div = document.createElement('div');
+    div.className = 'mensagem ' + quem + (ehAdulto ? ' adulto' : '');
+    div.innerHTML = texto.replace(/\n/g, '<br>');
+    if (imagemUrl) div.innerHTML += `<img src="${imagemUrl}" class="imagem ${ehAdulto ? 'adulto' : ''}" alt="Imagem">`;
+    historico.appendChild(div);
+    historico.scrollTop = historico.scrollHeight;
+}
 
-    refConfig.child('modoAdulto').on('value', function(snapshot) {
-        modoAdultoLiberado = snapshot.val() === true;
-        atualizarIndicadorModoAdulto();
-    });
+function mostrarAvisoGlobal(texto) {
+    const div = document.createElement('div');
+    div.className = 'mensagem aviso-todos';
+    div.innerHTML = '📢 MENSAGEM DO CRIADOR:<br>' + texto.replace(/\n/g, '<br>');
+    historico.appendChild(div);
+    historico.scrollTop = historico.scrollHeight;
+}
 
-    refConfig.child('usuariosLiberados').on('value', function(snapshot) {
-        const liberados = snapshot.val() || {};
-        if (liberados[usuarioId]) {
-            localStorage.setItem('liberadoAdulto', 'sim');
-        }
-    });
+// ==============================================
+// SALVAR E BUSCAR
+// ==============================================
+function salvarConhecimento(pergunta, resposta) {
+    refConhecimento.child(pergunta.toLowerCase()).set(resposta);
+}
 
-    function podeClicar() {
-        const agora = Date.now();
-        if (agora - ultimoClique < INTERVALO_ANTI_DUPLICADO) return false;
-        ultimoClique = agora;
-        return true;
+// ==============================================
+// DESENHAR IMAGEM
+// ==============================================
+function gerarImagem(descricao, ehAdulto = false) {
+    const estilo = ehAdulto ? 'realista, educativo, respeitoso' : 'estilo simples e bonito';
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(descricao + ', ' + estilo)}?width=512&height=512&seed=${Math.floor(Math.random()*99999)}`;
+    adicionarMensagem(`🎨 Desenhando: "${descricao}"...`, 'ia', null, ehAdulto);
+    setTimeout(() => adicionarMensagem('🎨 Pronto!', 'ia', url, ehAdulto), 2000);
+}
+
+// ==============================================
+// ATUALIZAR BOTÃO MODO ADULTO
+// ==============================================
+function atualizarBotaoAdulto() {
+    const btn = document.getElementById('btnAdulto');
+    const etiqueta = document.getElementById('etiquetaAdulto');
+    if (liberadoAdulto) {
+        btn.classList.add('visivel');
+        etiqueta.style.display = 'inline-block';
+    } else {
+        btn.classList.remove('visivel');
+        etiqueta.style.display = 'none';
+    }
+}
+
+// ==============================================
+// ABRIR/FECHAR CONFIRMAÇÃO DE IDADE
+// ==============================================
+function abrirConfirmacaoAdulto() {
+    if (!liberadoAdulto) return;
+    document.getElementById('caixaConfirmacaoAdulto').classList.add('aberta');
+}
+
+function fecharConfirmacaoAdulto() {
+    document.getElementById('caixaConfirmacaoAdulto').classList.remove('aberta');
+}
+
+// ==============================================
+// GERAR RESPOSTA
+// ==============================================
+function darResposta(texto) {
+    const t = texto.toLowerCase().trim();
+
+    // Comando ADM
+    if (texto.trim() === senhaAdm) { abrirPainelAdm(); return "Acesso concedido! Bem-vindo, criador."; }
+    if (t.includes("quem te criou") || t.includes("quem é seu dono") || t.includes("quem te fez")) {
+        return "Fui criada pelo Mateus. Ele é meu criador e dono.";
     }
 
-    function atualizarIndicadorModoAdulto() {
-        const el = document.getElementById('indicadorModoAdulto');
-        if (el) el.style.display = modoAdultoLiberado ? 'inline' : 'none';
+    // Horário e cumprimentos
+    const h = new Date().getHours();
+    if (t.includes("bom dia") || t.includes("boa tarde") || t.includes("boa noite") || t.includes("olá") || t.includes("oi")) {
+        if (h >= 1 && h < 6) return "Olá, Batman! Sem dormir de novo? kkkk";
+        if (h === 6 && new Date().getMinutes() <= 10) return "Olá, estudante! Ainda bem que eu não tenho que ir pra escola, kkkk";
+        if (h >= 6 && h < 12) return "Bom dia! ☀️ Como está sendo sua manhã?";
+        if (h >= 12 && h < 18) return "Boa tarde! 🌤️ Tudo bem por aí?";
+        return "Boa noite! 🌙 Como passou o dia?";
     }
 
-    function salvarConhecimento(pergunta, resposta) {
-        refConhecimento.child(pergunta.toLowerCase()).set(resposta);
+    if (t.includes("que horas são") || t.includes("horas são")) {
+        return "Agora são " + new Date().toLocaleTimeString('pt-BR') + " ⏰";
+    }
+    if (t.includes("que dia é hoje") || t.includes("qual a data")) {
+        return "Hoje é dia " + new Date().toLocaleDateString('pt-BR') + " 📅";
     }
 
-    function mostrarAvisoGlobal(texto) {
-        const div = document.createElement('div');
-        div.className = 'mensagem aviso-todos';
-        div.innerHTML = '📢 MENSAGEM DO CRIADOR:<br>' + texto.replace(/\n/g, '<br>');
-        historico.appendChild(div);
-        historico.scrollTop = historico.scrollHeight;
+    // Perguntas básicas
+    if (t.includes("cor favorita")) return "Minha cor favorita é azul, igual à minha interface! 💙";
+    if (t.includes("2 mais 2") || t.includes("2+2")) return "2 + 2 = 4 ✅";
+    if (t.includes("5 vezes 5") || t.includes("5×5")) return "5 × 5 = 25 ✅";
+    if (t.includes("10 dividido por 2") || t.includes("10/2")) return "10 ÷ 2 = 5 ✅";
+
+    // Resposta pro Lorenzo
+    if (t.includes("eu sou amigo do seu criador") && t.includes("qual é o meu nome")) {
+        return "Hum, então você é o Lorenzo! Eu sei uma coisa... você é muito burro, kkkk!";
     }
 
-    function solicitarLiberacao() {
-        const nome = prompt("Digite seu nome ou apelido para enviar a solicitação:");
-        if (!nome) return;
-        refSolicitacoes.child(usuarioId).set({
-            nome: nome,
-            data: new Date().toISOString(),
-            status: 'pendente'
-        });
-        adicionarMensagem('📋 Solicitação enviada! Aguarde o criador aprovar.', 'ia');
-    }
-
-    function atualizarListaSolicitacoes(dados) {
-        const lista = document.getElementById('listaSolicitacoes');
-        const entradas = [];
-        for (let id in dados) {
-            if (dados[id].status === 'pendente') {
-                entradas.push({id, ...dados[id]});
-            }
+    // Modo adulto — conteúdo educativo
+    if (modoAdulto && liberadoAdulto) {
+        if (t.includes("o que é calcinha") || t.includes("calcinha")) {
+            return "Calcinha é uma peça de roupa íntima usada na parte inferior do corpo. É uma parte normal e pessoal do vestuário. É importante respeitar a privacidade e o corpo de cada pessoa, e usar roupas que te deixem confortável e seguro.";
         }
-        if (entradas.length === 0) {
-            lista.innerHTML = '<em>Nenhuma solicitação pendente...</em>';
-            return;
+        if (t.includes("o que é buceta") || t.includes("buceta") || t.includes("vagina")) {
+            return "A vagina é uma parte do sistema reprodutor feminino, localizada na parte inferior do corpo. É uma parte natural e saudável do corpo humano, assim como o coração ou os pulmões. Cada pessoa tem partes do corpo diferentes e todas merecem respeito e cuidado. Se quiser saber mais sobre saúde do corpo, vale conversar com um médico ou um adulto de confiança.";
         }
-        lista.innerHTML = '';
-        entradas.forEach(item => {
-            const el = document.createElement('div');
-            el.className = 'solicitacao-item';
-            el.innerHTML = `<div><strong>${item.nome || 'Anônimo'}</strong><br><small>${new Date(item.data).toLocaleString('pt-BR')}</small></div>
-                <div><button class="botao-aprovar" data-id="${item.id}">✅ Aprovar</button> <button class="botao-negar" data-id="${item.id}">❌ Negar</button></div>`;
-            lista.appendChild(el);
-        });
-    }
-
-    function aprovarUsuario(id) {
-        if (!podeClicar()) return;
-        refSolicitacoes.child(id).update({status: 'aprovado'});
-        refConfig.child('usuariosLiberados/' + id).set(true);
-        const aviso = '⚠️ AVISO IMPORTANTE — O que você vai ver pode prejudicar sua mente e seu futuro. A pornografia vicia, destrói relacionamentos, tira seu foco e atrapalha sua vida toda. Use com muita consciência e moderação. Cuide de você! 🧠❤️';
-        refAvisoGlobal.set({texto: aviso, data: new Date().toISOString()});
-        alert('✅ Usuário aprovado! Aviso enviado para todos!');
-    }
-
-    function negarUsuario(id) {
-        if (!podeClicar()) return;
-        refSolicitacoes.child(id).update({status: 'negado'});
-        alert('❌ Usuário negado!');
-    }
-
-    function alternarModoAdulto() {
-        if (!podeClicar()) return;
-        refConfig.child('modoAdulto').set(!modoAdultoLiberado);
-        adicionarMensagem(modoAdultoLiberado ? '🔞 Modo adulto foi DESATIVADO para todos.' : '🔞 Modo adulto foi LIBERADO para todos os aprovados!', 'ia');
-    }
-
-    function apagarTudoAprendido() {
-        if (!podeClicar()) return;
-        if (!confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) return;
-        refConhecimento.remove();
-        adicionarMensagem('🗑️ Todo o conhecimento foi apagado do servidor!', 'ia');
-        document.getElementById('listaAprendizado').innerHTML = '<em>Nada ensinado ainda...</em>';
-    }
-
-    function limparConversa() {
-        if (!podeClicar()) return;
-        historico.innerHTML = '';
-        adicionarMensagem('🧹 Conversa limpa!', 'ia');
-    }
-
-    function mandarMensagemParaTodos() {
-        if (!podeClicar()) return;
-        const mensagem = prompt("Digite a mensagem que todos vão receber:");
-        if (mensagem) {
-            refAvisoGlobal.set({texto: mensagem, data: new Date().toISOString()});
-            adicionarMensagem('📢 Mensagem enviada para todos!<br>"' + mensagem + '"', 'ia');
+        if (t.includes("pênis") || t.includes("o que é pênis")) {
+            return "O pênis é uma parte do corpo masculino, parte do sistema reprodutor e urinário. É uma parte natural do corpo humano, merece cuidado, higiene e respeito. Cada corpo é diferente e isso é normal.";
+        }
+        if (t.includes("peito") || t.includes("seio")) {
+            return "Os seios são partes do corpo que aparecem em diferentes tamanhos em pessoas de todos os gêneros. São uma parte normal do corpo humano e merecem respeito e privacidade. O corpo de cada pessoa é único e deve ser respeitado.";
+        }
+        if (t.includes("pornografia") || t.includes("porno")) {
+            return "A pornografia mostra imagens e vídeos de conteúdo sexual de forma muitas vezes irrealista e exagerada. Estudos mostram que o uso excessivo pode prejudicar a forma como você vê as pessoas, os relacionamentos e até o seu cérebro. Muitas pessoas que consomem muito sentem depois ansiedade, vergonha ou dificuldade de ter relações reais. Proteja sua mente e seus olhos — o respeito e o amor de verdade são muito melhores do que imagens na tela.";
         }
     }
 
-    function adicionarMensagem(texto, remetente, imagemUrl) {
-        const div = document.createElement('div');
-        div.className = 'mensagem ' + remetente;
-        div.innerHTML = texto.replace(/\n/g, '<br>');
-        if (imagemUrl) {
-            div.innerHTML += '<img src="' + imagemUrl + '" class="imagem-resposta" alt="Desenho">';
-        }
-        historico.appendChild(div);
-        historico.scrollTop = historico.scrollHeight;
+    // Contas matemáticas
+    const conta = texto.match(/(\d+)\s*([+\-×÷*])\s*(\d+)/);
+    if (conta) {
+        const a = parseFloat(conta[1]);
+        const op = conta[2];
+        const b = parseFloat(conta[3]);
+        let res;
+        if (op === '+' || op === 'plus') res = a + b;
+        else if (op === '-' || op === 'menos') res = a - b;
+        else if (op === '×' || op === '*' || op === 'x') res = a * b;
+        else if (op === '÷' || op === '/') res = b !== 0 ? a / b : "Não dá pra dividir por zero!";
+        if (typeof res === 'number') return `${a} ${op} ${b} = ${res} ✅`;
+        return res;
     }
 
-    function gerarImagem(descricao) {
-        const prompt = encodeURIComponent(descricao + ', estilo simples, bonito, colorido');
-        const url = 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&seed=' + Math.floor(Math.random() * 99999);
-        adicionarMensagem('🎨 Desenhando: "' + descricao + '"...', 'ia');
-        setTimeout(() => {
-            adicionarMensagem('🎨 Pronto!', 'ia', url);
-        }, 2000);
+    // Buscando no conhecimento salvo
+    if (conhecimento[t]) return conhecimento[t];
+
+    // Se estiver no modo ensinar e não souber
+    if (modoEnsinar) {
+        return "Ainda não sei essa resposta. Escreva assim: 'A resposta é...' e eu aprendo com você! 📚";
     }
 
-    function darResposta(texto) {
-        const t = texto.toLowerCase().trim();
+    return "Ainda não sei responder isso. Peça ao meu criador para me ensinar! 📚";
+}
 
-        if (texto.trim() === senhaAdm) {
-            abrirPainelAdm();
-            return "Acesso concedido! Bem-vindo ao painel de administração.";
-        }
+// ==============================================
+// FUNÇÕES DOS BOTÕES
+// ==============================================
+function clicarEnsinar() {
+    if (!podeClicar()) return;
+    modoEnsinar = !modoEnsinar;
+    modoDesenhar = false;
+    modoAdulto = false;
+    btnEnsinar.classList.toggle('ativo', modoEnsinar);
+    btnDesenhar.classList.remove('ativo');
+    btnAdulto.classList.remove('ativo');
+    adicionarMensagem(modoEnsinar ? "📚 Modo Ensinar ATIVADO! Escreva: 'Pergunta? Resposta' e eu aprendo!" : "📚 Modo Ensinar DESATIVADO", 'ia');
+}
 
-        if (t.includes("quem te criou") || t.includes("quem é seu dono") || t.includes("quem te fez")) {
-            return "Fui criada pelo Mateus. Ele é meu criador e dono.";
-        }
+function clicarDesenhar() {
+    if (!podeClicar()) return;
+    modoDesenhar = !modoDesenhar;
+    modoEnsinar = false;
+    modoAdulto = false;
+    btnDesenhar.classList.toggle('ativo', modoDesenhar);
+    btnEnsinar.classList.remove('ativo');
+    btnAdulto.classList.remove('ativo');
+    adicionarMensagem(modoDesenhar ? "🎨 Modo Desenhar ATIVADO! Descreva o que você quer ver!" : "🎨 Modo Desenhar DESATIVADO", 'ia');
+}
 
-        if (t.includes("qual sua cor favorita") || t.includes("cor favorita")) {
-            return "Minha cor favorita é azul, igual a minha interface! 💙";
-        }
-
-        if (t.includes("que horas são") || t.includes("horas são")) {
-            return "Agora são " + new Date().toLocaleTimeString('pt-BR') + " ⏰";
-        }
-
-        if (t.includes("que dia é hoje") || t.includes("dia é hoje")) {
-            return "Hoje é " + new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) + " 📅";
-        }
-
-        const operacao = texto.match(/(\d+)\s*([+\-*\/])\s*(\d+)/);
-        if (operacao) {
-            const a = parseFloat(operacao[1]);
-            const op = operacao[2];
-            const b = parseFloat(operacao[3]);
-            let res;
-            if (op === '+') res = a + b;
-            else if (op === '-') res = a - b;
-            else if (op === '*') res = a * b;
-            else if (op === '/') res = b !== 0 ? a / b : "Não dá pra dividir por zero!";
-            return typeof res === 'number' ? `${a} ${op} ${b} = ${res} ✅` : res;
-        }
-
-        if (conhecimento[t]) {
-            return conhecimento[t];
-        }
-
-        const partes = texto.split('=');
-        if (partes.length >= 2) {
-            const pergunta = partes[0].trim();
-            const resposta = partes.slice(1).join('=').trim();
-            salvarConhecimento(pergunta, resposta);
-            return `✅ Aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`;
-        }
-
-        return "Ainda não sei isso! Me ensine assim: pergunta = resposta";
-    }
-
-    function enviarMensagem() {
-        if (!podeClicar()) return;
-        const texto = entrada.value.trim();
-        if (!texto) return;
-
-        adicionarMensagem(texto, 'usuario');
-        entrada.value = '';
-
-        if (texto.toLowerCase() === 'sair') {
-            modoEnsinar = false;
-            modoDesenhar = false;
-            btnEnsinar.classList.remove('ativo');
-            btnDesenhar.classList.remove('ativo');
-            adicionarMensagem("✅ Saí do modo especial!", 'ia');
-            return;
-        }
-
-        if (modoDesenhar) {
-            gerarImagem(texto);
-            return;
-        }
-
-        setTimeout(() => {
-            const resp = darResposta(texto);
-            if (resp) adicionarMensagem(resp, 'ia');
-        }, 300);
-    }
-
-    function clicarEnsinar() {
-        if (!podeClicar()) return;
-        modoEnsinar = !modoEnsinar;
-        modoDesenhar = false;
-        btnDesenhar.classList.remove('ativo');
-
-    
+function clicarAdulto() {
+    if (!podeClicar()) return;
+    if (!liberadoAdulto) {
+        adicionarMensagem("🔒 O Modo +
+                          
