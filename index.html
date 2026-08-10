@@ -15,7 +15,7 @@
             border-radius: 8px;
             outline: none;
             transition: all 0.1s;
-            min-height: 56px;
+            min-height: 44px;
             touch-action: manipulation;
         }
         button:active { transform: scale(0.92); }
@@ -29,6 +29,7 @@
             --adulto: #ff4466;
             --perigo: #ff3333;
             --aviso: #ffcc00;
+            --sucesso: #00cc66;
         }
         html, body { 
             height: 100%; 
@@ -56,7 +57,7 @@
             flex: 1; 
             padding: 15px; 
             overflow-y: auto; 
-            height: calc(100vh - 200px); 
+            height: calc(100vh - 220px); 
         }
         .mensagem {
             margin: 10px 0; 
@@ -111,8 +112,8 @@
         .botao-modo { 
             flex: 1; 
             min-width: 90px;
-            padding: 12px 8px; 
-            font-size: 14px; 
+            padding: 10px 6px; 
+            font-size: 13px; 
             font-weight: bold; 
             color: #fff; 
             background: #555; 
@@ -127,23 +128,79 @@
         .caixa-envio { display: flex; gap: 10px; align-items: center; }
         #entrada {
             flex: 1; 
-            padding: 14px 16px; 
+            padding: 12px 16px; 
             border-radius: 25px; 
             border: 2px solid var(--primaria);
             background: rgba(30,58,95,0.6); 
             color: #fff; 
             font-size: 16px; 
             outline: none; 
-            min-height: 56px;
+            min-height: 48px;
         }
         #btnEnviar { 
-            width: 56px; 
-            height: 56px; 
+            width: 48px; 
+            height: 48px; 
             border-radius: 50%; 
             background: var(--primaria); 
             color: #fff; 
-            font-size: 20px; 
+            font-size: 18px; 
         }
+
+        /* ===== CAIXA DE PEDIDO NO CANTO INFERIOR DIREITO ===== */
+        .caixa-pedido-canto {
+            position: fixed;
+            bottom: 130px;
+            right: 15px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid var(--adulto);
+            border-radius: 12px;
+            padding: 12px;
+            width: 260px;
+            z-index: 50;
+            box-shadow: 0 4px 20px rgba(255, 68, 102, 0.25);
+            display: none;
+        }
+        .caixa-pedido-canto.aberta { display: block; }
+        .caixa-pedido-canto h4 { color: var(--adulto); font-size: 14px; margin-bottom: 8px; }
+        .caixa-pedido-canto input {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 8px;
+            outline: none;
+        }
+        .botoes-pedido-canto { display: flex; gap: 6px; }
+        .botoes-pedido-canto button {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+        .btn-pedir { background: var(--adulto); color: #fff; }
+        .btn-cancelar { background: #444; color: #fff; }
+        .botao-pedir-canto {
+            position: fixed;
+            bottom: 130px;
+            right: 15px;
+            background: var(--adulto);
+            color: #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 22px;
+            z-index: 49;
+            box-shadow: 0 3px 10px rgba(255, 68, 102, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .botao-pedir-canto.escondido { display: none; }
+
         .painel-adm {
             position: fixed; 
             top: 0; 
@@ -177,9 +234,20 @@
             border: 2px solid var(--adulto);
             border-radius: 12px;
             padding: 25px;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
         }
+        .pedido-item {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border-left: 3px solid var(--aviso);
+        }
+        .pedido-item.aprovado { border-left-color: var(--sucesso); }
+        .botoes-pedido { display: flex; gap: 8px; margin-top: 8px; }
+        .botao-aprova { background: var(--sucesso); flex: 1; padding: 8px; border-radius: 6px; color: #fff; font-weight: bold; }
+        .botao-nega { background: var(--perigo); flex: 1; padding: 8px; border-radius: 6px; color: #fff; font-weight: bold; }
         .botoes-adm { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
         .botao-adm { 
             flex: 1; 
@@ -191,7 +259,6 @@
         .botao-apagar { background: var(--perigo); }
         .botao-limpar { background: var(--aviso); color: #000; }
         .botao-aviso { background: #00cc66; }
-        .botao-libera-adulto { background: var(--adulto); }
         .botao-fechar { background: #444; width: 100%; margin-top: 10px; }
         .lista-dados { 
             background: rgba(0,0,0,0.4); 
@@ -202,6 +269,11 @@
             overflow-y: auto; 
             font-size: 13px; 
         }
+        .aba { display: flex; gap: 5px; margin: 10px 0; }
+        .aba-btn { flex: 1; padding: 8px; background: #333; color: #fff; border-radius: 6px; font-size: 13px; }
+        .aba-btn.ativa { background: var(--sucesso); }
+        .conteudo-aba { display: none; }
+        .conteudo-aba.ativo { display: block; }
     </style>
 </head>
 <body>
@@ -212,13 +284,13 @@
 
 <div class="historico" id="historico">
     <div class="mensagem ia">
-        💡 <strong>O que eu faço:</strong><br><br>
-        ✅ Cumprimento conforme a hora do dia<br>
-        ✅ Digo as horas e a data<br>
-        ✅ Faço contas: + - × ÷<br>
-        ✅ Aprendo o que você me ensinar<br>
-        ✅ Desenho imagens pra você<br>
-        ✅ Painel secreto do criador<br><br>
+        💡 <strong>Olá! Eu sou o JARVIS!</strong><br><br>
+        ✅ Pergunte que horas são ou que dia é hoje<br>
+        ✅ Faça contas: 2+2, 5×5, 10÷2 e muito mais<br>
+        ✅ Pergunte minha cor favorita<br>
+        ✅ Ative o modo Ensinar para me ensinar coisas novas<br>
+        ✅ Ative o modo Desenhar para eu criar imagens<br>
+        ✅ Quer o Modo +18? Clica no botão vermelho no canto → e pede sua liberação!<br><br>
         Use os botões abaixo! 👇
     </div>
 </div>
@@ -235,20 +307,49 @@
     </div>
 </div>
 
+<!-- BOTÃO REDONDO NO CANTO PEDIR LIBERAÇÃO -->
+<button class="botao-pedir-canto" id="botaoPedirCanto">🔞</button>
+
+<!-- CAIXA DE PEDIDO QUE ABRE NO CANTO -->
+<div class="caixa-pedido-canto" id="caixaPedidoCanto">
+    <h4>🔞 Pedir Liberação</h4>
+    <input type="text" id="inputNomeUsuario" placeholder="Digite seu nome ou apelido">
+    <div class="botoes-pedido-canto">
+        <button class="btn-pedir" id="btnEnviarPedido">Enviar</button>
+        <button class="btn-cancelar" id="btnCancelarPedido">Cancelar</button>
+    </div>
+</div>
+
 <div class="painel-adm" id="painelAdm">
     <h2>🔐 PAINEL DE ADMINISTRAÇÃO</h2>
-    <p style="margin:10px 0;">Bem-vindo, criador!</p>
-    
-    <div class="botoes-adm">
-        <button class="botao-adm botao-apagar" id="btnApagar">🗑️ Apagar Tudo</button>
-        <button class="botao-adm botao-limpar" id="btnLimpar">🧹 Limpar Conversa</button>
-        <button class="botao-adm botao-aviso" id="btnAvisoTodos">📢 Aviso Global</button>
-        <button class="botao-adm botao-libera-adulto" id="btnLiberaAdulto">🔞 Liberar Modo +18</button>
+    <p style="margin:5px 0 15px 0;">Bem-vindo, criador!</p>
+
+    <div class="aba">
+        <button class="aba-btn ativa" id="abaPedidos">📋 Pedidos</button>
+        <button class="aba-btn" id="abaConhecimento">📚 Conhecimento</button>
+        <button class="aba-btn" id="abaGeral">⚙️ Geral</button>
     </div>
 
-    <h3 style="margin-top:20px;">📚 Conhecimento Salvo:</h3>
-    <div class="lista-dados" id="listaConhecimento">
-        <em>Nada ensinado ainda...</em>
+    <div class="conteudo-aba ativo" id="conteudoAbaPedidos">
+        <h3>🔞 Pedidos de Liberação do Modo +18</h3>
+        <div id="listaPedidos">
+            <em>Nenhum pedido ainda...</em>
+        </div>
+    </div>
+
+    <div class="conteudo-aba" id="conteudoAbaConhecimento">
+        <h3>📚 Conhecimento Salvo:</h3>
+        <div class="lista-dados" id="listaConhecimento">
+            <em>Nada ensinado ainda...</em>
+        </div>
+    </div>
+
+    <div class="conteudo-aba" id="conteudoAbaGeral">
+        <div class="botoes-adm">
+            <button class="botao-adm botao-apagar" id="btnApagar">🗑️ Apagar Tudo</button>
+            <button class="botao-adm botao-limpar" id="btnLimpar">🧹 Limpar Conversa</button>
+            <button class="botao-adm botao-aviso" id="btnAvisoTodos">📢 Aviso Global</button>
+        </div>
     </div>
 
     <button class="botao-adm botao-fechar" id="btnFecharPainel">❌ FECHAR</button>
@@ -256,9 +357,8 @@
 
 <div class="caixa-confirmacao" id="caixaConfirmacaoAdulto">
     <div class="conteudo-confirmacao">
-        <h3>🔞 CONFIRMAÇÃO DE IDADE</h3>
-        <p style="margin:15px 0;">Este conteúdo é destinado exclusivamente para maiores de 18 anos.<br><br>
-        Inclui educação sobre o corpo humano, saúde e orientações sobre os riscos da pornografia.</p>
+        <h3>🔞 VERIFICAÇÃO DE IDADE</h3>
+        <p style="margin:15px 0;">O Modo +18 traz conteúdo educativo sobre o corpo humano, saúde e orientações sobre os riscos da pornografia.<br><br>É restrito a maiores de 18 anos.</p>
         <div style="display:flex;gap:10px;margin-top:15px;">
             <button id="btnNaoSouAdulto" style="flex:1;background:#555;">Não tenho 18 anos</button>
             <button id="btnSouAdulto" style="flex:1;background:var(--adulto);">Tenho 18 anos ou mais</button>
@@ -270,9 +370,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-database-compat.js"></script>
 
 <script>
-// ==============================================
 // FIREBASE — NÃO MUDAR!
-// ==============================================
 const firebaseConfig = {
     apiKey: "AIzaSyAXOSDRxiVUola9pZ2WSUfZtrUl2XsinFk",
     authDomain: "ia-mineira.firebaseapp.com",
@@ -285,37 +383,52 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const refConhecimento = db.ref('conhecimento');
-const refConfiguracao = db.ref('configuracao');
 const refAvisoGlobal = db.ref('avisoGlobal');
+const refPedidos = db.ref('pedidosAdulto');
+const refUsuariosLiberados = db.ref('usuariosLiberadosAdulto');
 
-// ==============================================
-// VARIÁVEIS
-// ==============================================
+// Identificador único do usuário
+let usuarioId = localStorage.getItem('usuarioId');
+if (!usuarioId) {
+    usuarioId = 'usuario_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    localStorage.setItem('usuarioId', usuarioId);
+}
+
 let conhecimento = {};
 let modoEnsinar = false;
 let modoDesenhar = false;
 let modoAdulto = false;
-let liberadoAdulto = false;
+let usuarioLiberado = false;
 const senhaAdm = "Wubba Lubba Dub Dub";
 let ultimoClique = 0;
 const INTERVALO = 300;
+let avisoJaMostrado = null;
 
-// ==============================================
-// INICIALIZAÇÃO
-// ==============================================
-refConhecimento.on('value', s => { conhecimento = s.val() || {}; });
-refConfiguracao.child('modoAdultoLiberado').on('value', s => {
-    liberadoAdulto = s.val() || false;
-    atualizarBotaoAdulto();
+// Elementos da caixa no canto
+const botaoPedirCanto = document.getElementById('botaoPedirCanto');
+const caixaPedidoCanto = document.getElementById('caixaPedidoCanto');
+const inputNomeUsuario = document.getElementById('inputNomeUsuario');
+const btnEnviarPedido = document.getElementById('btnEnviarPedido');
+const btnCancelarPedido = document.getElementById('btnCancelarPedido');
+
+// Escutar mudanças
+refConhecimento.on('value', s => { 
+    conhecimento = s.val() || {}; 
+    atualizarListaConhecimento();
 });
 refAvisoGlobal.on('value', s => {
     const aviso = s.val();
-    if (aviso && aviso.texto) mostrarAvisoGlobal(aviso.texto);
+    if (aviso && aviso.texto && aviso.texto !== avisoJaMostrado) {
+        avisoJaMostrado = aviso.texto;
+        mostrarAvisoGlobal(aviso.texto);
+    }
 });
+refUsuariosLiberados.child(usuarioId).on('value', s => {
+    usuarioLiberado = s.exists();
+    atualizarBotaoAdulto();
+});
+refPedidos.on('value', atualizarListaPedidos);
 
-// ==============================================
-// PROTEÇÃO DE CLIQUE DUPLICADO
-// ==============================================
 function podeClicar() {
     const agora = Date.now();
     if (agora - ultimoClique < INTERVALO) return false;
@@ -323,9 +436,6 @@ function podeClicar() {
     return true;
 }
 
-// ==============================================
-// MOSTRAR MENSAGENS
-// ==============================================
 function adicionarMensagem(texto, quem, imagemUrl, ehAdulto = false) {
     const div = document.createElement('div');
     div.className = 'mensagem ' + quem + (ehAdulto ? ' adulto' : '');
@@ -343,16 +453,10 @@ function mostrarAvisoGlobal(texto) {
     historico.scrollTop = historico.scrollHeight;
 }
 
-// ==============================================
-// SALVAR E BUSCAR
-// ==============================================
 function salvarConhecimento(pergunta, resposta) {
     refConhecimento.child(pergunta.toLowerCase()).set(resposta);
 }
 
-// ==============================================
-// DESENHAR IMAGEM
-// ==============================================
 function gerarImagem(descricao, ehAdulto = false) {
     const estilo = ehAdulto ? 'realista, educativo, respeitoso' : 'estilo simples e bonito';
     const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(descricao + ', ' + estilo)}?width=512&height=512&seed=${Math.floor(Math.random()*99999)}`;
@@ -360,145 +464,90 @@ function gerarImagem(descricao, ehAdulto = false) {
     setTimeout(() => adicionarMensagem('🎨 Pronto!', 'ia', url, ehAdulto), 2000);
 }
 
-// ==============================================
-// ATUALIZAR BOTÃO MODO ADULTO
-// ==============================================
 function atualizarBotaoAdulto() {
     const btn = document.getElementById('btnAdulto');
     const etiqueta = document.getElementById('etiquetaAdulto');
-    if (liberadoAdulto) {
+    if (usuarioLiberado) {
         btn.classList.add('visivel');
         etiqueta.style.display = 'inline-block';
+        botaoPedirCanto.classList.add('escondido'); // Esconde o botão de pedir
     } else {
         btn.classList.remove('visivel');
         etiqueta.style.display = 'none';
+        botaoPedirCanto.classList.remove('escondido'); // Mostra o botão de pedir
     }
 }
 
-// ==============================================
-// ABRIR/FECHAR CONFIRMAÇÃO DE IDADE
-// ==============================================
-function abrirConfirmacaoAdulto() {
-    if (!liberadoAdulto) return;
-    document.getElementById('caixaConfirmacaoAdulto').classList.add('aberta');
-}
-
-function fecharConfirmacaoAdulto() {
-    document.getElementById('caixaConfirmacaoAdulto').classList.remove('aberta');
-}
-
-// ==============================================
-// GERAR RESPOSTA
-// ==============================================
-function darResposta(texto) {
-    const t = texto.toLowerCase().trim();
-
-    // Comando ADM
-    if (texto.trim() === senhaAdm) { abrirPainelAdm(); return "Acesso concedido! Bem-vindo, criador."; }
-    if (t.includes("quem te criou") || t.includes("quem é seu dono") || t.includes("quem te fez")) {
-        return "Fui criada pelo Mateus. Ele é meu criador e dono.";
-    }
-
-    // Horário e cumprimentos
-    const h = new Date().getHours();
-    if (t.includes("bom dia") || t.includes("boa tarde") || t.includes("boa noite") || t.includes("olá") || t.includes("oi")) {
-        if (h >= 1 && h < 6) return "Olá, Batman! Sem dormir de novo? kkkk";
-        if (h === 6 && new Date().getMinutes() <= 10) return "Olá, estudante! Ainda bem que eu não tenho que ir pra escola, kkkk";
-        if (h >= 6 && h < 12) return "Bom dia! ☀️ Como está sendo sua manhã?";
-        if (h >= 12 && h < 18) return "Boa tarde! 🌤️ Tudo bem por aí?";
-        return "Boa noite! 🌙 Como passou o dia?";
-    }
-
-    if (t.includes("que horas são") || t.includes("horas são")) {
-        return "Agora são " + new Date().toLocaleTimeString('pt-BR') + " ⏰";
-    }
-    if (t.includes("que dia é hoje") || t.includes("qual a data")) {
-        return "Hoje é dia " + new Date().toLocaleDateString('pt-BR') + " 📅";
-    }
-
-    // Perguntas básicas
-    if (t.includes("cor favorita")) return "Minha cor favorita é azul, igual à minha interface! 💙";
-    if (t.includes("2 mais 2") || t.includes("2+2")) return "2 + 2 = 4 ✅";
-    if (t.includes("5 vezes 5") || t.includes("5×5")) return "5 × 5 = 25 ✅";
-    if (t.includes("10 dividido por 2") || t.includes("10/2")) return "10 ÷ 2 = 5 ✅";
-
-    // Resposta pro Lorenzo
-    if (t.includes("eu sou amigo do seu criador") && t.includes("qual é o meu nome")) {
-        return "Hum, então você é o Lorenzo! Eu sei uma coisa... você é muito burro, kkkk!";
-    }
-
-    // Modo adulto — conteúdo educativo
-    if (modoAdulto && liberadoAdulto) {
-        if (t.includes("o que é calcinha") || t.includes("calcinha")) {
-            return "Calcinha é uma peça de roupa íntima usada na parte inferior do corpo. É uma parte normal e pessoal do vestuário. É importante respeitar a privacidade e o corpo de cada pessoa, e usar roupas que te deixem confortável e seguro.";
-        }
-        if (t.includes("o que é buceta") || t.includes("buceta") || t.includes("vagina")) {
-            return "A vagina é uma parte do sistema reprodutor feminino, localizada na parte inferior do corpo. É uma parte natural e saudável do corpo humano, assim como o coração ou os pulmões. Cada pessoa tem partes do corpo diferentes e todas merecem respeito e cuidado. Se quiser saber mais sobre saúde do corpo, vale conversar com um médico ou um adulto de confiança.";
-        }
-        if (t.includes("pênis") || t.includes("o que é pênis")) {
-            return "O pênis é uma parte do corpo masculino, parte do sistema reprodutor e urinário. É uma parte natural do corpo humano, merece cuidado, higiene e respeito. Cada corpo é diferente e isso é normal.";
-        }
-        if (t.includes("peito") || t.includes("seio")) {
-            return "Os seios são partes do corpo que aparecem em diferentes tamanhos em pessoas de todos os gêneros. São uma parte normal do corpo humano e merecem respeito e privacidade. O corpo de cada pessoa é único e deve ser respeitado.";
-        }
-        if (t.includes("pornografia") || t.includes("porno")) {
-            return "A pornografia mostra imagens e vídeos de conteúdo sexual de forma muitas vezes irrealista e exagerada. Estudos mostram que o uso excessivo pode prejudicar a forma como você vê as pessoas, os relacionamentos e até o seu cérebro. Muitas pessoas que consomem muito sentem depois ansiedade, vergonha ou dificuldade de ter relações reais. Proteja sua mente e seus olhos — o respeito e o amor de verdade são muito melhores do que imagens na tela.";
-        }
-    }
-
-    // Contas matemáticas
-    const conta = texto.match(/(\d+)\s*([+\-×÷*])\s*(\d+)/);
-    if (conta) {
-        const a = parseFloat(conta[1]);
-        const op = conta[2];
-        const b = parseFloat(conta[3]);
-        let res;
-        if (op === '+' || op === 'plus') res = a + b;
-        else if (op === '-' || op === 'menos') res = a - b;
-        else if (op === '×' || op === '*' || op === 'x') res = a * b;
-        else if (op === '÷' || op === '/') res = b !== 0 ? a / b : "Não dá pra dividir por zero!";
-        if (typeof res === 'number') return `${a} ${op} ${b} = ${res} ✅`;
-        return res;
-    }
-
-    // Buscando no conhecimento salvo
-    if (conhecimento[t]) return conhecimento[t];
-
-    // Se estiver no modo ensinar e não souber
-    if (modoEnsinar) {
-        return "Ainda não sei essa resposta. Escreva assim: 'A resposta é...' e eu aprendo com você! 📚";
-    }
-
-    return "Ainda não sei responder isso. Peça ao meu criador para me ensinar! 📚";
-}
-
-// ==============================================
-// FUNÇÕES DOS BOTÕES
-// ==============================================
-function clicarEnsinar() {
+// ABRIR E FECHAR CAIXA DE PEDIDO NO CANTO
+botaoPedirCanto.addEventListener('click', () => {
     if (!podeClicar()) return;
-    modoEnsinar = !modoEnsinar;
-    modoDesenhar = false;
-    modoAdulto = false;
-    btnEnsinar.classList.toggle('ativo', modoEnsinar);
-    btnDesenhar.classList.remove('ativo');
-    btnAdulto.classList.remove('ativo');
-    adicionarMensagem(modoEnsinar ? "📚 Modo Ensinar ATIVADO! Escreva: 'Pergunta? Resposta' e eu aprendo!" : "📚 Modo Ensinar DESATIVADO", 'ia');
+    caixaPedidoCanto.classList.toggle('aberta');
+    inputNomeUsuario.value = '';
+    inputNomeUsuario.focus();
+});
+
+btnCancelarPedido.addEventListener('click', () => {
+    caixaPedidoCanto.classList.remove('aberta');
+    inputNomeUsuario.value = '';
+});
+
+btnEnviarPedido.addEventListener('click', () => {
+    if (!podeClicar()) return;
+    const nome = inputNomeUsuario.value.trim();
+    if (!nome) { alert('Digite seu nome ou apelido!'); return; }
+    
+    adicionarMensagem(`📤 Enviou pedido: ${nome}`, 'usuario');
+    
+    // Salva o pedido no Firebase
+    refPedidos.child(usuarioId).set({
+        nome: nome,
+        data: new Date().toLocaleString('pt-BR'),
+        status: 'pendente'
+    });
+    
+    adicionarMensagem("📋 Pedido enviado! Aguarde o criador aprovar. ⏳", 'ia');
+    caixaPedidoCanto.classList.remove('aberta');
+    inputNomeUsuario.value = '';
+});
+
+// Atualizar lista de pedidos no Painel ADM
+function atualizarListaPedidos(snapshot) {
+    const lista = document.getElementById('listaPedidos');
+    lista.innerHTML = '';
+    const pedidos = snapshot.val() || {};
+    
+    if (Object.keys(pedidos).length === 0) {
+        lista.innerHTML = '<em>Nenhum pedido ainda...</em>';
+        return;
+    }
+    
+    for (let id in pedidos) {
+        const p = pedidos[id];
+        const div = document.createElement('div');
+        div.className = 'pedido-item' + (p.status === 'aprovado' ? ' aprovado' : '');
+        div.innerHTML = `
+            <strong>${p.nome}</strong><br>
+            <small>📅 ${p.data}</small><br>
+            <span style="color:${p.status === 'aprovado' ? '#00ff88' : '#ffcc00'}">
+                ${p.status === 'aprovado' ? '✅ APROVADO' : '⏳ PENDENTE'}
+            </span>
+            ${p.status !== 'aprovado' ? `
+                <div class="botoes-pedido">
+                    <button class="botao-aprova" data-id="${id}">✅ Aprovar</button>
+                    <button class="botao-nega" data-id="${id}">❌ Negar</button>
+                </div>
+            ` : ''}
+        `;
+        lista.appendChild(div);
+    }
+    
+    document.querySelectorAll('.botao-aprova').forEach(btn => {
+        btn.addEventListener('click', () => aprovarPedido(btn.dataset.id));
+    });
+    document.querySelectorAll('.botao-nega').forEach(btn => {
+        btn.addEventListener('click', () => negarPedido(btn.dataset.id));
+    });
 }
 
-function clicarDesenhar() {
-    if (!podeClicar()) return;
-    modoDesenhar = !modoDesenhar;
-    modoEnsinar = false;
-    modoAdulto = false;
-    btnDesenhar.classList.toggle('ativo', modoDesenhar);
-    btnEnsinar.classList.remove('ativo');
-    btnAdulto.classList.remove('ativo');
-    adicionarMensagem(modoDesenhar ? "🎨 Modo Desenhar ATIVADO! Descreva o que você quer ver!" : "🎨 Modo Desenhar DESATIVADO", 'ia');
-}
-
-function clicarAdulto() {
-    if (!podeClicar()) return;
-    if (!liberadoAdulto) {
-        adicionarMensagem("🔒 O Modo +
-                          
+function apro
+    
