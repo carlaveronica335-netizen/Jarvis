@@ -263,6 +263,284 @@
         <button class="botao-adm botao-adulto" id="btnAlternarAdulto">🔞 Alternar Modo Adulto</button>
     </div>
 
-    <h4 style="margin-top:12px;">📋 Solic
+    <h4 style="margin-top:12px;">📋 Solicitações de liberação:</h4>
+    <div class="lista-solicitacoes" id="listaSolicitacoes">
+        <em>Nenhuma solicitação pendente...</em>
+    </div>
 
-        
+    <h4 style="margin-top:12px;">📚 Conhecimento salvo:</h4>
+    <div class="info-aprendizado" id="listaAprendizado">
+        <em>Nada ensinado ainda...</em>
+    </div>
+
+    <button class="botao-adm botao-fechar" id="btnFecharPainel">❌ Fechar</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAXOSDRxiVUola9pZ2WSUfZtrUl2XsinFk",
+        authDomain: "ia-mineira.firebaseapp.com",
+        databaseURL: "https://ia-mineira-default-rtdb.firebaseio.com",
+        projectId: "ia-mineira",
+        storageBucket: "ia-mineira.firebasestorage.app",
+        messagingSenderId: "243372611456",
+        appId: "1:243372611456:web:e0e72e6368ea4d6a721365"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const refConhecimento = db.ref('conhecimento');
+    const refAvisoGlobal = db.ref('avisoGlobal');
+    const refSolicitacoes = db.ref('solicitacoesAdulto');
+    const refConfig = db.ref('configuracao');
+
+    let conhecimento = {};
+    let modoEnsinar = false;
+    let modoDesenhar = false;
+    const senhaAdm = "Wubba Lubba Dub Dub";
+    let ultimoAvisoRecebido = "";
+    let modoAdultoLiberado = false;
+    let usuarioId = localStorage.getItem('usuarioId') || ('usuario_' + Math.random().toString(36).substr(2, 9));
+    localStorage.setItem('usuarioId', usuarioId);
+    let ultimoClique = 0;
+    const INTERVALO_ANTI_DUPLICADO = 300;
+
+    refConhecimento.on('value', function(snapshot) {
+        conhecimento = snapshot.val() || {};
+    });
+
+    refAvisoGlobal.on('value', function(snapshot) {
+        const aviso = snapshot.val();
+        if (aviso && aviso.texto && aviso.texto !== ultimoAvisoRecebido) {
+            ultimoAvisoRecebido = aviso.texto;
+            mostrarAvisoGlobal(aviso.texto);
+        }
+    });
+
+    refSolicitacoes.on('value', function(snapshot) {
+        const dados = snapshot.val() || {};
+        atualizarListaSolicitacoes(dados);
+    });
+
+    refConfig.child('modoAdulto').on('value', function(snapshot) {
+        modoAdultoLiberado = snapshot.val() === true;
+        atualizarIndicadorModoAdulto();
+    });
+
+    refConfig.child('usuariosLiberados').on('value', function(snapshot) {
+        const liberados = snapshot.val() || {};
+        if (liberados[usuarioId]) {
+            localStorage.setItem('liberadoAdulto', 'sim');
+        }
+    });
+
+    function podeClicar() {
+        const agora = Date.now();
+        if (agora - ultimoClique < INTERVALO_ANTI_DUPLICADO) return false;
+        ultimoClique = agora;
+        return true;
+    }
+
+    function atualizarIndicadorModoAdulto() {
+        const el = document.getElementById('indicadorModoAdulto');
+        if (el) el.style.display = modoAdultoLiberado ? 'inline' : 'none';
+    }
+
+    function salvarConhecimento(pergunta, resposta) {
+        refConhecimento.child(pergunta.toLowerCase()).set(resposta);
+    }
+
+    function mostrarAvisoGlobal(texto) {
+        const div = document.createElement('div');
+        div.className = 'mensagem aviso-todos';
+        div.innerHTML = '📢 MENSAGEM DO CRIADOR:<br>' + texto.replace(/\n/g, '<br>');
+        historico.appendChild(div);
+        historico.scrollTop = historico.scrollHeight;
+    }
+
+    function solicitarLiberacao() {
+        const nome = prompt("Digite seu nome ou apelido para enviar a solicitação:");
+        if (!nome) return;
+        refSolicitacoes.child(usuarioId).set({
+            nome: nome,
+            data: new Date().toISOString(),
+            status: 'pendente'
+        });
+        adicionarMensagem('📋 Solicitação enviada! Aguarde o criador aprovar.', 'ia');
+    }
+
+    function atualizarListaSolicitacoes(dados) {
+        const lista = document.getElementById('listaSolicitacoes');
+        const entradas = [];
+        for (let id in dados) {
+            if (dados[id].status === 'pendente') {
+                entradas.push({id, ...dados[id]});
+            }
+        }
+        if (entradas.length === 0) {
+            lista.innerHTML = '<em>Nenhuma solicitação pendente...</em>';
+            return;
+        }
+        lista.innerHTML = '';
+        entradas.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'solicitacao-item';
+            el.innerHTML = `<div><strong>${item.nome || 'Anônimo'}</strong><br><small>${new Date(item.data).toLocaleString('pt-BR')}</small></div>
+                <div><button class="botao-aprovar" data-id="${item.id}">✅ Aprovar</button> <button class="botao-negar" data-id="${item.id}">❌ Negar</button></div>`;
+            lista.appendChild(el);
+        });
+    }
+
+    function aprovarUsuario(id) {
+        if (!podeClicar()) return;
+        refSolicitacoes.child(id).update({status: 'aprovado'});
+        refConfig.child('usuariosLiberados/' + id).set(true);
+        const aviso = '⚠️ AVISO IMPORTANTE — O que você vai ver pode prejudicar sua mente e seu futuro. A pornografia vicia, destrói relacionamentos, tira seu foco e atrapalha sua vida toda. Use com muita consciência e moderação. Cuide de você! 🧠❤️';
+        refAvisoGlobal.set({texto: aviso, data: new Date().toISOString()});
+        alert('✅ Usuário aprovado! Aviso enviado para todos!');
+    }
+
+    function negarUsuario(id) {
+        if (!podeClicar()) return;
+        refSolicitacoes.child(id).update({status: 'negado'});
+        alert('❌ Usuário negado!');
+    }
+
+    function alternarModoAdulto() {
+        if (!podeClicar()) return;
+        refConfig.child('modoAdulto').set(!modoAdultoLiberado);
+        adicionarMensagem(modoAdultoLiberado ? '🔞 Modo adulto foi DESATIVADO para todos.' : '🔞 Modo adulto foi LIBERADO para todos os aprovados!', 'ia');
+    }
+
+    function apagarTudoAprendido() {
+        if (!podeClicar()) return;
+        if (!confirm('Tem CERTEZA? Vai apagar TUDO que ela aprendeu!')) return;
+        refConhecimento.remove();
+        adicionarMensagem('🗑️ Todo o conhecimento foi apagado do servidor!', 'ia');
+        document.getElementById('listaAprendizado').innerHTML = '<em>Nada ensinado ainda...</em>';
+    }
+
+    function limparConversa() {
+        if (!podeClicar()) return;
+        historico.innerHTML = '';
+        adicionarMensagem('🧹 Conversa limpa!', 'ia');
+    }
+
+    function mandarMensagemParaTodos() {
+        if (!podeClicar()) return;
+        const mensagem = prompt("Digite a mensagem que todos vão receber:");
+        if (mensagem) {
+            refAvisoGlobal.set({texto: mensagem, data: new Date().toISOString()});
+            adicionarMensagem('📢 Mensagem enviada para todos!<br>"' + mensagem + '"', 'ia');
+        }
+    }
+
+    function adicionarMensagem(texto, remetente, imagemUrl) {
+        const div = document.createElement('div');
+        div.className = 'mensagem ' + remetente;
+        div.innerHTML = texto.replace(/\n/g, '<br>');
+        if (imagemUrl) {
+            div.innerHTML += '<img src="' + imagemUrl + '" class="imagem-resposta" alt="Desenho">';
+        }
+        historico.appendChild(div);
+        historico.scrollTop = historico.scrollHeight;
+    }
+
+    function gerarImagem(descricao) {
+        const prompt = encodeURIComponent(descricao + ', estilo simples, bonito, colorido');
+        const url = 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&seed=' + Math.floor(Math.random() * 99999);
+        adicionarMensagem('🎨 Desenhando: "' + descricao + '"...', 'ia');
+        setTimeout(() => {
+            adicionarMensagem('🎨 Pronto!', 'ia', url);
+        }, 2000);
+    }
+
+    function darResposta(texto) {
+        const t = texto.toLowerCase().trim();
+
+        if (texto.trim() === senhaAdm) {
+            abrirPainelAdm();
+            return "Acesso concedido! Bem-vindo ao painel de administração.";
+        }
+
+        if (t.includes("quem te criou") || t.includes("quem é seu dono") || t.includes("quem te fez")) {
+            return "Fui criada pelo Mateus. Ele é meu criador e dono.";
+        }
+
+        if (t.includes("qual sua cor favorita") || t.includes("cor favorita")) {
+            return "Minha cor favorita é azul, igual a minha interface! 💙";
+        }
+
+        if (t.includes("que horas são") || t.includes("horas são")) {
+            return "Agora são " + new Date().toLocaleTimeString('pt-BR') + " ⏰";
+        }
+
+        if (t.includes("que dia é hoje") || t.includes("dia é hoje")) {
+            return "Hoje é " + new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) + " 📅";
+        }
+
+        const operacao = texto.match(/(\d+)\s*([+\-*\/])\s*(\d+)/);
+        if (operacao) {
+            const a = parseFloat(operacao[1]);
+            const op = operacao[2];
+            const b = parseFloat(operacao[3]);
+            let res;
+            if (op === '+') res = a + b;
+            else if (op === '-') res = a - b;
+            else if (op === '*') res = a * b;
+            else if (op === '/') res = b !== 0 ? a / b : "Não dá pra dividir por zero!";
+            return typeof res === 'number' ? `${a} ${op} ${b} = ${res} ✅` : res;
+        }
+
+        if (conhecimento[t]) {
+            return conhecimento[t];
+        }
+
+        const partes = texto.split('=');
+        if (partes.length >= 2) {
+            const pergunta = partes[0].trim();
+            const resposta = partes.slice(1).join('=').trim();
+            salvarConhecimento(pergunta, resposta);
+            return `✅ Aprendi!\nPergunta: ${pergunta}\nResposta: ${resposta}`;
+        }
+
+        return "Ainda não sei isso! Me ensine assim: pergunta = resposta";
+    }
+
+    function enviarMensagem() {
+        if (!podeClicar()) return;
+        const texto = entrada.value.trim();
+        if (!texto) return;
+
+        adicionarMensagem(texto, 'usuario');
+        entrada.value = '';
+
+        if (texto.toLowerCase() === 'sair') {
+            modoEnsinar = false;
+            modoDesenhar = false;
+            btnEnsinar.classList.remove('ativo');
+            btnDesenhar.classList.remove('ativo');
+            adicionarMensagem("✅ Saí do modo especial!", 'ia');
+            return;
+        }
+
+        if (modoDesenhar) {
+            gerarImagem(texto);
+            return;
+        }
+
+        setTimeout(() => {
+            const resp = darResposta(texto);
+            if (resp) adicionarMensagem(resp, 'ia');
+        }, 300);
+    }
+
+    function clicarEnsinar() {
+        if (!podeClicar()) return;
+        modoEnsinar = !modoEnsinar;
+        modoDesenhar = false;
+        btnDesenhar.classList.remove('ativo');
+
+    
